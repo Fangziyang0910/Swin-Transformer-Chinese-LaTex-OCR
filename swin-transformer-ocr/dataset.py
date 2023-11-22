@@ -14,6 +14,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.images = []
         self.texts = []
 
+
         # build one
         self.token_id_dict = {   # 文本到idx的映射  idx到文本的映射
             "token2id": {
@@ -29,8 +30,18 @@ class CustomDataset(torch.utils.data.Dataset):
                 cfg.oov_token: "[OOV]"
             }
         }
+        # 从txt中加载公式分词数据
+        self.txt_dict = self.load_dictionary(self.cfg.txt_dict)
 
         skip_cnt, token_cnt = 0, 4 # 跳过计数和词计数
+        # 直接先将t现有的xt分词加到字典里面
+        for token in self.txt_dict:
+            # 确保不重复添加
+            if token not in self.token_id_dict['token2id']:
+                self.token_id_dict['token2id'][token] = token_cnt
+                self.token_id_dict['id2token'][token_cnt] = token
+                token_cnt += 1
+
         with open(txt_fn, 'r', encoding='utf8') as f:
             for line in f:
                 try:
@@ -44,7 +55,10 @@ class CustomDataset(torch.utils.data.Dataset):
                     continue
                 self.images.append(fn)
                 self.texts.append(text)
-                if not cfg.load_tokenizer: # 这地方个要改掉，传进来的应该是一个分过词的结果，然按照后空格拆分，然后在这里构建成字典
+                if not cfg.load_tokenizer:
+                    # 利用最大匹配进行分词
+                    text = self.FMM_func(self.txt_dict,text)
+                    # 将分词之后的结果继续补充字典（主要是补充中文字符）
                     for token in text:
                         if token not in self.token_id_dict["token2id"]:
                             self.token_id_dict["token2id"][token] = token_cnt
@@ -52,6 +66,7 @@ class CustomDataset(torch.utils.data.Dataset):
                             token_cnt += 1
 
         print(f"{len(self.images)} data loaded. ({skip_cnt} data skipped)")
+
 
     def __len__(self):
         return len(self.images)
@@ -65,6 +80,40 @@ class CustomDataset(torch.utils.data.Dataset):
         image = cv2.imread(str(Path(self.cfg.image_dir) / self.images[idx]))
         text = self.texts[idx]
         return image, text
+
+    def FMM_func(self, user_dict, sentence):
+        """
+        正向最大匹配（FMM）
+        :param user_dict: 词典
+        :param sentence: 句子
+        """
+        # 词典中最长词长度
+        max_len = max([len(item) for item in user_dict])
+        start = 0
+        token_list = []
+        while start != len(sentence):
+            index = start + max_len
+            if index > len(sentence):
+                index = len(sentence)
+            for i in range(max_len):
+                if (sentence[start:index] in user_dict) or (len(sentence[start:index]) == 1):
+                    token_list.append(sentence[start:index])
+                    # print(sentence[start:index], end='/')
+                    start = index
+                    break
+                index += -1
+        return token_list
+
+    def load_dictionary(self, file_path):
+        """
+        从txt文件加载分词字典
+        :param file_path: 分词文件的路径
+        :return: 包含所有分词的集合
+        """
+        with open(file_path, 'r', encoding='utf-8') as file:
+            # 使用集合来存储分词，自动去除重复项
+            word_set = set(word.strip() for word in file)
+        return word_set
 
 class CustomCollate(object):
     def __init__(self, cfg, tokenizer, is_train=True):
