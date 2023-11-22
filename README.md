@@ -21,7 +21,7 @@
 4. - [x] 将处理好的字典保存成pkl格式的词库并保存（代码自动完成）
 
 #### 文本分词以及embedding
-1. - [x]修改tokenize部分，用自定义词库，FMM方法分词，然后embedding。
+1. - [x] 修改tokenize部分，用自定义词库，FMM方法分词，然后embedding。
 
 ### 图像处理部分
 
