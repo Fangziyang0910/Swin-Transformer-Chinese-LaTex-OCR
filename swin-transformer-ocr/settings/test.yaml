@@ -1,0 +1,57 @@
+# Input/Output/Name
+image_dir: "dataset/images"
+train_data: "dataset/train.txt"
+val_data: "dataset/val.txt"
+tokenizer: "dataset/vocab.pkl"
+save_path: "checkpoints"
+name: "transformer-ocr test"
+
+epochs: 50
+
+# Optimizer configurations
+optimizer: "AdamW"
+lr: 1e-4
+scheduler: "CustomCosineAnnealingWarmupRestarts"
+scheduler_interval: "step"
+scheduler_param:
+  first_cycle_steps: 3000
+  cycle_mult: 3
+  max_lr: 0.0002
+  min_lr: 0.00005
+  warmup_steps: 500
+  gamma: 0.707
+
+# Parameters for model architectures
+width: 448
+height: 112
+channels: 3
+
+# Encoder
+encoder_dim: 96
+patch_size: 4
+window_size: 7
+encoder_depth: [2, 6, 2]
+encoder_heads: [6, 12, 24]
+
+# Decoder
+max_seq_len: 256   # 最大文字长度
+decoder_dim: 384
+decoder_heads: 8
+decoder_depth: 4
+decoder_cfg: 
+  cross_attend: true
+  ff_glu: false
+  attn_on_attn: false
+  use_scalenorm: false
+  rel_pos_bias: false
+
+# Other
+seed: 42
+temperature: 0.2
+pad: False
+
+# Token ids
+pad_token: 0
+bos_token: 1
+eos_token: 2
+oov_token: 3
