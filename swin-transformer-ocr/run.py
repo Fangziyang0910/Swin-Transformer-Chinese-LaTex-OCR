@@ -15,7 +15,7 @@ if __name__ == "__main__":
                         help="Experiment settings")
     parser.add_argument("--version", "-v", type=int, default=1,
                         help="Train experiment version")
-    parser.add_argument("--load_tokenizer", "-bt", type=str, default="",
+    parser.add_argument("--load_tokenizer", "-bt", type=str, default="dataset/vocab.pkl",
                         help="Load pre-built tokenizer")
     parser.add_argument("--num_workers", "-nw", type=int, default=16,
                         help="Number of workers for dataloader")

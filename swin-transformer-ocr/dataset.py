@@ -14,6 +14,8 @@ class CustomDataset(torch.utils.data.Dataset):
         self.images = []
         self.texts = []
 
+        self.new_word_count = {}  # 新词出现次数的计数器
+
 
         # build one
         self.token_id_dict = {   # 文本到idx的映射  idx到文本的映射
@@ -56,14 +58,14 @@ class CustomDataset(torch.utils.data.Dataset):
                 self.images.append(fn)
                 self.texts.append(text)
                 if not cfg.load_tokenizer:
-                    # 利用最大匹配进行分词
-                    text = self.FMM_func(self.txt_dict,text)
-                    # 将分词之后的结果继续补充字典（主要是补充中文字符）
-                    for token in text:
+                    text_tokens = self.FMM_func(self.txt_dict, text)
+                    for token in text_tokens:
                         if token not in self.token_id_dict["token2id"]:
-                            self.token_id_dict["token2id"][token] = token_cnt
-                            self.token_id_dict["id2token"][token_cnt] = token
-                            token_cnt += 1
+                            self.new_word_count[token] = self.new_word_count.get(token, 0) + 1
+                            if self.new_word_count[token] > 5:
+                                self.token_id_dict["token2id"][token] = token_cnt
+                                self.token_id_dict["id2token"][token_cnt] = token
+                                token_cnt += 1
 
         print(f"{len(self.images)} data loaded. ({skip_cnt} data skipped)")
 
@@ -186,6 +188,27 @@ class Tokenizer:
     def __len__(self):
         return len(self.token2id)
 
+    def FMM_func(self, user_dict, sentence):
+        """
+        正向最大匹配（FMM）
+        :param user_dict: 词典，格式为 {词: 索引}
+        :param sentence: 句子
+        """
+        max_len = max([len(word) for word in user_dict.keys()])
+        start = 0
+        token_list = []
+        while start != len(sentence):
+            index = start + max_len
+            if index > len(sentence):
+                index = len(sentence)
+            for i in range(max_len):
+                if (sentence[start:index] in user_dict) or (len(sentence[start:index]) == 1):
+                    token_list.append(sentence[start:index])
+                    start = index
+                    break
+                index -= 1
+        return token_list
+
     def encode(self, texts: list):  #文本的encoder操作，处理成同样长度的序列，用mask标记空白部分
         """
         text:
@@ -200,6 +223,7 @@ class Tokenizer:
         oov = self.token2id["[OOV]"]
 
         ids = []
+        texts = self.FMM_func(self.token2id, texts) # 先进行分词，然后再转为emmbeding
         for text in texts:
             encoded = [bos,]
             for token in text:
