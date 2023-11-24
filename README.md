@@ -124,3 +124,8 @@ trainer = pl.Trainer(# gpus=device_cnt,
 4. 数据增强
 
 ### 模型部分
+
+### 模型指标部分
+
+1. - [ ] 生成文本质量指标包括bleu_score, edit_distance, token_accuracy，实现方法将参照项目 [LatexOCR](https://github.com/lukas-blecher/LaTeX-OCR)
+2. - [ ] 指标计算部分集成在SwinTransformerOCR中
