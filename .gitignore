@@ -1,4 +1,3 @@
-swin-transformer-ocr/dataset
 swin-transformer-ocr/datasets_no_test
 
 swin-transformer-ocr/checkpoints/*
