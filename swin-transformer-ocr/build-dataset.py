@@ -1,6 +1,6 @@
 import os
 import shutil
-# 根据数据集路径改data_path, 其他参数不需要改
+# 根据数据集路径改data_path, 其他参数不需要改（还没做）
 # data_path = '210705'
 
 #得到集合txt：train.txt,直接写在同一行
