@@ -29,34 +29,67 @@
 
 ## 使用方法
 
+### 环境配置
+
 1.先创建ssh连接密钥，然后克隆仓库。
 
 ```
 git clone git@github.com:Fangziyang0910/Swin-Transformer-Chinese-LaTex-OCR.git
 ```
 
-2.进入并安装pytorch以及对应的依赖,pytorch请安装自己对应的pytorch版本
+2.创建一个conda环境
+
+```
+conda create -n latex_ocr python=3.8
+conda activate latex_ocr
+```
+
+3.进入并安装pytorch以及对应的依赖,pytorch请安装自己对应的pytorch版本
 
 pytorch网址：https://pytorch.org/get-started/previous-versions/
+安装pytorch,这个版本请改成自己的，并在安装后检查版本
+
+```
+pip install torch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+```
+
+4.安装依赖
 
 ```
 cd Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr
 pip install -r requirments.txt
 ```
 
-3.将数据集自己放进来，放在swin..这个目录下,然后运行一次built-dataset.py(新的数据集进来要改路径)
+### 放入数据集
+
+
+
+1.将数据集自己放进来，放在swin..这个目录下,然后运行一次built-dataset.py(新的数据集进来要改路径)。有点慢请耐心等待，处理好的数据将会放在dataset文件夹中。
 
 ```
 python built-dataset.py
 ```
 
-4.可以开始训练
+4.可以开始训练，
 
 ```
-python run.py
+python run.py --batch_size==16 # 根据自己的gpu实力自己调
 ```
 
+需要注意的是要在run代码的最后修改一下
 
+这里的gpus将我注视掉的取消，把下面一行注视掉，这是因为我多卡训练的时候做的特殊处理，你们要用回默认配置。
+
+```python
+trainer = pl.Trainer(# gpus=device_cnt,   
+                     gpus=[1,2],
+                     max_epochs=cfg.epochs,
+                     logger=logger,
+                     num_sanity_val_steps=1,
+                     strategy=strategy,
+                     callbacks=[ckpt_callback, lr_callback],
+                     resume_from_checkpoint=cfg.resume_train if cfg.resume_train else None)
+```
 
 
 
@@ -74,13 +107,14 @@ python run.py
 3. - [x] 在构建新词库的代码中增加过滤器，**只有出现次数大于10词的新单词才加入词库。**
 4. - [x] 将处理好的字典保存成pkl格式的词库并保存（代码自动完成）
 
-2023.11.24 update
 
-1. - [] 构建大 
 
-#### 文本分词以及embedding
+11.24更新
 
-1. - [x] 修改tokenize部分，用自定义词库，FMM方法分词，然后embedding。
+1. - [] 构建完整的大的公式词表（从别的latexocr中获取他们的dict，用我们代码中的util中的save——tokenizer来保存成自己的字典。也可以直接搜latex的官方帮助文档，手动添加一些符号）
+2. - [x] 去除掉ground true文本中所有的空格（已经完成）
+3. - [] 改写built-dataset函数，希望数据集路径成为一个单独的超参。
+
 
 ### 图像处理部分
 
