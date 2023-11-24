@@ -26,7 +26,7 @@ for file in files:
         lines = f.readlines()
     data = ''
     for line in lines:
-        data += line.rstrip()
+        data += line.rstrip().replace(' ', '')
     with open(traintxt, 'a', encoding='utf-8') as f:
         fileName = file[:-4] + '.png'
         f.write(fileName + '\t' + data + '\n')
@@ -41,7 +41,7 @@ for file in files:
         lines = f.readlines()
     data = ''
     for line in lines:
-        data += line.rstrip()
+        data += line.rstrip().replace(' ', '')
     with open(valtxt, 'a', encoding='utf-8') as f:
         fileName = file[:-4] + '.png'
         f.write(fileName + '\t' + data + '\n')
