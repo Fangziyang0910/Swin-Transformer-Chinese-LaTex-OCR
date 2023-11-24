@@ -1,13 +1,10 @@
 albumentations==1.1.0
 easydict==1.9
 numpy==1.24.3
-numpy==1.20.2
 opencv_python==4.5.4.58
 opencv_python_headless==4.5.4.58
 Pillow==8.4.0
-Pillow==10.1.0
 pytorch_lightning==1.5.3
-PyYAML==6.0
 PyYAML==6.0.1
 timm==0.4.12
 x_transformers==0.20.4
