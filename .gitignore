@@ -5,8 +5,8 @@ swin-transformer-ocr/checkpoints/*
 !swin-transformer-ocr/checkpoints/.gitkeep
 
 swin-transformer-ocr/dataset/images/
-!swin-transformer-ocr/dataset/train.txt
-!swin-transformer-ocr/dataset/val.txt
+swin-transformer-ocr/dataset/train.txt
+swin-transformer-ocr/dataset/val.txt
 
 swin-transformer-ocr/tb_logs
 swin-transformer-ocr/__pycache__
