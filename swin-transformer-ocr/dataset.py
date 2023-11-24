@@ -223,8 +223,8 @@ class Tokenizer:
         oov = self.token2id["[OOV]"]
 
         ids = []
-        texts = self.FMM_func(self.token2id, texts) # 先进行分词，然后再转为emmbeding
         for text in texts:
+            text = self.FMM_func(self.token2id, text)  # 先进行分词，然后再转为emmbeding
             encoded = [bos,]
             for token in text:
                 try:

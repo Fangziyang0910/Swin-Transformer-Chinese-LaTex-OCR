@@ -7,7 +7,7 @@ if not os.path.exists(output_label_dir):
     os.mkdir(output_label_dir)
 label_name_list = os.listdir(input_label_dir)
 
-with open('./vocab.txt', 'r', encoding='utf-8') as f:
+with open('vocab.txt', 'r', encoding='utf-8') as f:
     vocab = f.read().split()
 
 max_token_len = 0
@@ -82,7 +82,7 @@ for label_name in label_name_list:
     # if have_chinese is True:
     #     print()
 
-with open('./cn_vocab.txt', 'w', encoding='utf-8') as f:
+with open('cn_vocab.txt', 'w', encoding='utf-8') as f:
     chinese_token_list = list(set(chinese_token_list))
     for chinese_token in chinese_token_list:
         f.write(chinese_token + '\n')

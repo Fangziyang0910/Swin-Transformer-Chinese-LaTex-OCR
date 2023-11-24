@@ -35,7 +35,7 @@ encoder_depth: [2, 6, 2]
 encoder_heads: [6, 12, 24]
 
 # Decoder
-max_seq_len: 256   # 最大文字长度
+max_seq_len: 256
 decoder_dim: 384
 decoder_heads: 8
 decoder_depth: 4
