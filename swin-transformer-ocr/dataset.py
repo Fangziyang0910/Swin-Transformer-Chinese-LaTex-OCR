@@ -117,6 +117,19 @@ class CustomDataset(torch.utils.data.Dataset):
             # 使用集合来存储分词，自动去除重复项
             word_set = set(word.strip() for word in file)
         return word_set
+        
+'''关于数据增强函数的注解：
+alb.Resize:将输入图像调整为指定的尺寸大小（112x448）
+alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
+                            border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7):随机进行平移、缩放和旋转变换。参数依次为平移的倍数，缩放的倍数，旋转的角度，边界的模式（填充边界用什么方法），插值方法（处理图像时，会有新的像素点），填充边界颜色，应用该函数的概率
+alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
+                            value=[255, 255, 255], p=.5):理解为拉伸的操作，distort_limit为限制拉伸倍数
+alb.GaussNoise(10, p=.2):增加高斯噪声，10为噪声强度，GaussNoise(var_limit=(10.0, 50.0), mean=None, always_apply=False, p=0.5)
+alb.RandomBrightnessContrast(.05, (-.2, 0), True, p=0.2):亮度对比度调整，①亮度调整限制范围②对比度调整限制范围③是否根据图像最大值调整亮度
+alb.ImageCompression(95, p=.3):图像压缩，压缩质量
+alb.ToGray(always_apply=True):变灰图
+alb.Normalize():归一化*
+ToTensorV2():将图像从numpy数组格式转换为tensor格式'''
 
 class CustomCollate(object):
     def __init__(self, cfg, tokenizer, is_train=True):
