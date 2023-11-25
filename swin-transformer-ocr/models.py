@@ -9,6 +9,10 @@ from timm.models.swin_transformer import SwinTransformer
 
 import utils
 
+import nltk
+import Levenshtein
+
+
 class SwinTransformerOCR(pl.LightningModule):
     def __init__(self, cfg, tokenizer):
         super().__init__()
@@ -105,8 +109,34 @@ class SwinTransformerOCR(pl.LightningModule):
         assert len(gt) == len(pred)
 
         acc = sum([1 if gt[i] == pred[i] else 0 for i in range(len(gt))]) / x.size(0)
+        # 初始化指标
+        total_bleu_score = 0
+        total_edit_distance = 0
+
+        # 对批次中的每个样本进行计算
+        for i in range(x.size(0)):
+            # 将预测和真实标签转换为文本
+            pred_text = self.tokenizer.decode(dec[i], skip_special_tokens=True)
+            gt_text = self.tokenizer.decode(tgt_seq[i], skip_special_tokens=True)
+
+            # 计算 BLEU Score
+            # 注意：BLEU Score 通常需要一个列表作为参考句子
+            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt_text.split()], pred_text.split())
+            total_bleu_score += bleu_score
+
+            # 计算 Edit Distance
+            edit_distance = Levenshtein.distance(gt_text, pred_text)
+            total_edit_distance += edit_distance
+
+        # 计算平均指标
+        avg_bleu_score = total_bleu_score / x.size(0)
+        avg_edit_distance = total_edit_distance / x.size(0)
+
+
 
         return {'val_loss': loss,
+                'avg_bleu_score': avg_bleu_score,
+                'avg_edit_distance': avg_edit_distance,
                 'results' : {
                     'gt' : gt,
                     'pred' : pred
@@ -117,6 +147,10 @@ class SwinTransformerOCR(pl.LightningModule):
     def validation_epoch_end(self, outputs):
         val_loss = sum([x['val_loss'] for x in outputs]) / len(outputs)
         acc = sum([x['acc'] for x in outputs]) / len(outputs)
+
+        # 由于现在指标是批次级别的平均值，直接计算整个验证集的平均值
+        avg_bleu_score = sum([x['avg_bleu_score'] for x in outputs]) / len(outputs)
+        avg_edit_distance = sum([x['avg_edit_distance'] for x in outputs]) / len(outputs)
 
         wrong_cases = []
         for output in outputs:
@@ -129,6 +163,8 @@ class SwinTransformerOCR(pl.LightningModule):
 
         self.log('val_loss', val_loss)
         self.log('accuracy', acc)
+        self.log('val_bleu', avg_bleu_score)
+        self.log('val_edit_distance', avg_edit_distance)
 
         # custom text logging
         self.logger.log_text("wrong_case", "___".join(wrong_cases), self.global_step)

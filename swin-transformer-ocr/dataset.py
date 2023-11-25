@@ -8,6 +8,7 @@ import albumentations as alb
 from albumentations.pytorch import ToTensorV2
 
 
+
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, cfg, txt_fn):
         self.cfg = cfg

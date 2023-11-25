@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/test.yaml",
                         help="Experiment settings")
-    parser.add_argument("--version", "-v", type=int, default=1,
+    parser.add_argument("--version", "-v", type=int, default=2,
                         help="Train experiment version")
     parser.add_argument("--load_tokenizer", "-bt", type=str, default="dataset/vocab.pkl",
                         help="Load pre-built tokenizer")
@@ -59,9 +59,9 @@ if __name__ == "__main__":
                                      default_hp_metric=False)
 
     ckpt_callback = pl.callbacks.ModelCheckpoint(
-        monitor="accuracy",
+        monitor="val_bleu",
         dirpath=f"{cfg.save_path}/version_{cfg.version}",
-        filename="checkpoints-{epoch:02d}-{accuracy:.5f}",
+        filename="checkpoints-{epoch:02d}-{val_bleu:.5f}",
         save_top_k=3,
         mode="max",
     )
