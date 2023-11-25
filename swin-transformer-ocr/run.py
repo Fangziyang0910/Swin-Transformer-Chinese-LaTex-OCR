@@ -59,10 +59,10 @@ if __name__ == "__main__":
                                      default_hp_metric=False)
 
     ckpt_callback = pl.callbacks.ModelCheckpoint(
-        monitor="val_bleu",
+        monitor="val_overall_score",
         dirpath=f"{cfg.save_path}/version_{cfg.version}",
-        filename="checkpoints-{epoch:02d}-{val_bleu:.5f}",
-        save_top_k=3,
+        filename="checkpoints-{epoch:02d}-{val_overall_score:.5f}-{accuracy:.5f}-{val_bleu:.5f}-{val_edit_distance:.5f}-{val_loss:.5f}",
+        save_top_k=5,
         mode="max",
     )
     lr_callback = pl.callbacks.LearningRateMonitor(logging_interval='step')
@@ -70,7 +70,8 @@ if __name__ == "__main__":
     device_cnt = torch.cuda.device_count()
     strategy = pl.plugins.DDPPlugin(find_unused_parameters=False) if device_cnt > 1 else None
     trainer = pl.Trainer(# gpus=device_cnt,
-                         gpus=[1,2],
+                         #gpus=[1,2],
+                         gpus=device_cnt,
                          max_epochs=cfg.epochs,
                          logger=logger,
                          num_sanity_val_steps=1,

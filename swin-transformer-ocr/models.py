@@ -115,24 +115,28 @@ class SwinTransformerOCR(pl.LightningModule):
 
         # 对批次中的每个样本进行计算
         for i in range(x.size(0)):
-            # 将预测和真实标签转换为文本
-            pred_text = self.tokenizer.decode(dec[i], skip_special_tokens=True)
-            gt_text = self.tokenizer.decode(tgt_seq[i], skip_special_tokens=True)
 
             # 计算 BLEU Score
             # 注意：BLEU Score 通常需要一个列表作为参考句子
-            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt_text.split()], pred_text.split())
+            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i])
             total_bleu_score += bleu_score
 
             # 计算 Edit Distance
-            edit_distance = Levenshtein.distance(gt_text, pred_text)
+            edit_distance = Levenshtein.distance(gt[i], pred[i])
+            edit_distance = 1. - (edit_distance / max(len(gt[i]),len(pred[i]), 1))
             total_edit_distance += edit_distance
 
         # 计算平均指标
         avg_bleu_score = total_bleu_score / x.size(0)
         avg_edit_distance = total_edit_distance / x.size(0)
 
+        avg_three_metric = (acc+avg_bleu_score+avg_edit_distance)*100./3
 
+        # self.log('val_loss_step', loss)
+        # self.log('accuracy_step', acc)
+        # self.log('val_bleu_step', avg_bleu_score)
+        # self.log('val_edit_distance_step', avg_edit_distance)
+        # self.log('val_overall_step', avg_three_metric)
 
         return {'val_loss': loss,
                 'avg_bleu_score': avg_bleu_score,
@@ -141,7 +145,8 @@ class SwinTransformerOCR(pl.LightningModule):
                     'gt' : gt,
                     'pred' : pred
                     },
-                'acc': acc
+                'acc': acc,
+                'overall': avg_three_metric
                 }
 
     def validation_epoch_end(self, outputs):
@@ -151,6 +156,8 @@ class SwinTransformerOCR(pl.LightningModule):
         # 由于现在指标是批次级别的平均值，直接计算整个验证集的平均值
         avg_bleu_score = sum([x['avg_bleu_score'] for x in outputs]) / len(outputs)
         avg_edit_distance = sum([x['avg_edit_distance'] for x in outputs]) / len(outputs)
+        
+        avg_three_metric = sum([x['overall'] for x in outputs]) / len(outputs)
 
         wrong_cases = []
         for output in outputs:
@@ -161,10 +168,11 @@ class SwinTransformerOCR(pl.LightningModule):
                     wrong_cases.append("|gt:{}/pred:{}|".format(gt, pred))
         wrong_cases = random.sample(wrong_cases, min(len(wrong_cases), self.cfg.batch_size//2))
 
-        self.log('val_loss', val_loss)
-        self.log('accuracy', acc)
-        self.log('val_bleu', avg_bleu_score)
-        self.log('val_edit_distance', avg_edit_distance)
+        self.log('val_loss_epoch', val_loss)
+        self.log('accuracy_epoch', acc)
+        self.log('val_bleu_epoch', avg_bleu_score)
+        self.log('val_edit_distance_epoch', avg_edit_distance)
+        self.log('val_overall_score_epoch', avg_three_metric)
 
         # custom text logging
         self.logger.log_text("wrong_case", "___".join(wrong_cases), self.global_step)
