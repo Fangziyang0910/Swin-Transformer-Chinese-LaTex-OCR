@@ -115,17 +115,14 @@ class SwinTransformerOCR(pl.LightningModule):
 
         # 对批次中的每个样本进行计算
         for i in range(x.size(0)):
-            # 将预测和真实标签转换为文本
-            pred_text = self.tokenizer.decode(dec[i], skip_special_tokens=True)
-            gt_text = self.tokenizer.decode(tgt_seq[i], skip_special_tokens=True)
 
             # 计算 BLEU Score
             # 注意：BLEU Score 通常需要一个列表作为参考句子
-            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt_text.split()], pred_text.split())
+            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i])
             total_bleu_score += bleu_score
 
             # 计算 Edit Distance
-            edit_distance = Levenshtein.distance(gt_text, pred_text)
+            edit_distance = Levenshtein.distance(gt[i], pred[i])
             total_edit_distance += edit_distance
 
         # 计算平均指标
