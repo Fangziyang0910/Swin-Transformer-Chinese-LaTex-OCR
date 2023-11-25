@@ -4,6 +4,7 @@ swin-transformer-ocr/checkpoints/*
 !swin-transformer-ocr/checkpoints/.gitkeep
 
 swin-transformer-ocr/dataset/images/
+swin-transformer-ocr/dataset/images.zip
 swin-transformer-ocr/dataset/train.txt
 swin-transformer-ocr/dataset/val.txt
 
