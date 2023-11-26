@@ -12,6 +12,8 @@ import utils
 import nltk
 import Levenshtein
 
+import numpy as np
+
 
 class SwinTransformerOCR(pl.LightningModule):
     def __init__(self, cfg, tokenizer):
@@ -109,29 +111,28 @@ class SwinTransformerOCR(pl.LightningModule):
         assert len(gt) == len(pred)
 
         acc = sum([1 if gt[i] == pred[i] else 0 for i in range(len(gt))]) / x.size(0)
-        # 初始化指标
-        total_bleu_score = 0
-        total_edit_distance = 0
-
-        # 对批次中的每个样本进行计算
-        for i in range(x.size(0)):
-
-            # 计算 BLEU Score
-            # 注意：BLEU Score 通常需要一个列表作为参考句子
-            bleu_score = nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i])
-            total_bleu_score += bleu_score
-
-            # 计算 Edit Distance
-            edit_distance = Levenshtein.distance(gt[i], pred[i])
-
-            edit_distance = 1. - (edit_distance / max(len(gt[i]),len(pred[i]), 1))
-
-
-        # 计算平均指标
-        avg_bleu_score = total_bleu_score / x.size(0)
-        avg_edit_distance = total_edit_distance / x.size(0)
-
-        avg_three_metric = (acc+avg_bleu_score+avg_edit_distance)*100./3
+        bleu_score = sum([nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i]) for i in range(len(gt))]) / x.size(0)
+        edit_distance = sum([(1. - (Levenshtein.distance(gt[i], pred[i]) / max(len(gt[i]), len(pred[i]), 1))) for i in range(len(gt))]) / x.size(0)
+        #
+        # # 对批次中的每个样本进行计算
+        # for i in range(x.size(0)):
+        #
+        #     # 计算 BLEU Score
+        #     # 注意：BLEU Score 通常需要一个列表作为参考句子
+        #     bleu_score = nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i])
+        #     total_bleu_score += bleu_score
+        #
+        #     # 计算 Edit Distance
+        #     edit_distance = Levenshtein.distance(gt[i], pred[i])
+        #
+        #     edit_distance = 1. - (edit_distance / max(len(gt[i]),len(pred[i]), 1))
+        #
+        #
+        # # 计算平均指标
+        # avg_bleu_score = total_bleu_score / x.size(0)
+        # avg_edit_distance = total_edit_distance / x.size(0)
+        #
+        # avg_three_metric = (acc+avg_bleu_score+avg_edit_distance)*100./3
 
         # self.log('val_loss_step', loss)
         # self.log('accuracy_step', acc)
@@ -139,9 +140,35 @@ class SwinTransformerOCR(pl.LightningModule):
         # self.log('val_edit_distance_step', avg_edit_distance)
         # self.log('val_overall_step', avg_three_metric)
 
+        def calculate_metrics(gt, pred):
+            # 计算 BLEU Scores 和 Edit Distances
+            bleu_scores = [nltk.translate.bleu_score.sentence_bleu([g], p) for g, p in zip(gt, pred)]
+            edit_distances = [1. - (Levenshtein.distance(g, p) / max(len(g), len(p), 1)) for g, p in zip(gt, pred)]
+
+            return bleu_scores, edit_distances
+
+        # 示例数据
+        # gt = ... # 实际标签的列表
+        # pred = ... # 预测标签的列表
+        # acc = ... # 准确率
+
+        # 计算 BLEU Scores 和 Edit Distances
+        bleu_scores, edit_distances = calculate_metrics(gt, pred)
+
+        # 将列表转换为 NumPy 数组以利用向量化操作
+        bleu_scores = np.array(bleu_scores)
+        edit_distances = np.array(edit_distances)
+
+        # 计算平均指标
+        bleu_score = np.mean(bleu_scores)
+        edit_distance = np.mean(edit_distances)
+
+        # 计算综合指标
+        avg_three_metric = (acc + bleu_score + edit_distance) * 100. / 3
+
         return {'val_loss': loss,
-                'avg_bleu_score': avg_bleu_score,
-                'avg_edit_distance': avg_edit_distance,
+                'avg_bleu_score': bleu_score,
+                'avg_edit_distance': edit_distance,
                 'results' : {
                     'gt' : gt,
                     'pred' : pred
@@ -169,11 +196,11 @@ class SwinTransformerOCR(pl.LightningModule):
                     wrong_cases.append("|gt:{}/pred:{}|".format(gt, pred))
         wrong_cases = random.sample(wrong_cases, min(len(wrong_cases), self.cfg.batch_size//2))
 
-        self.log('val_loss_epoch', val_loss)
-        self.log('accuracy_epoch', acc)
-        self.log('val_bleu_epoch', avg_bleu_score)
-        self.log('val_edit_distance_epoch', avg_edit_distance)
-        self.log('val_overall_score_epoch', avg_three_metric)
+        self.log('val_loss', val_loss)
+        self.log('accuracy', acc)
+        self.log('val_bleu', avg_bleu_score)
+        self.log('val_edit_distance', avg_edit_distance)
+        self.log('val_overall_score', avg_three_metric)
 
         # custom text logging
         self.logger.log_text("wrong_case", "___".join(wrong_cases), self.global_step)

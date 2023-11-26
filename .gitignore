@@ -3,6 +3,9 @@ swin-transformer-ocr/datasets_no_test
 swin-transformer-ocr/checkpoints/*
 !swin-transformer-ocr/checkpoints/.gitkeep
 
+swin-transformer-ocr/weights/*
+!swin-transformer-ocr/weights/.gitkeep
+
 swin-transformer-ocr/dataset/images/
 swin-transformer-ocr/dataset/images.zip
 swin-transformer-ocr/dataset/train.txt
