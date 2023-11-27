@@ -253,10 +253,14 @@ class CustomARWrapper(AutoregressiveWrapper):
             logits = self.net(x, mask=mask, **kwcfg)[:, -1, :]
 
             if filter_logits_fn in {top_k, top_p}:
+                # 对给定的 logits（模型的原始输出）进行 top-k 操作。
+                # 具体而言，它将 logits 中除了前 k 个最大值之外的所有值设置为负无穷（`float('-inf')'）。
                 filtered_logits = filter_logits_fn(logits, thres=filter_thres)
                 probs = F.softmax(filtered_logits / temperature, dim=-1)
 
             elif filter_logits_fn is entmax:
+                # entmax_bisect 是一个用于计算 Entmax 操作（带有可调整参数的 Softmax）的库中的函数。
+                # Entmax 是 Softmax 的一种变体，允许用户通过参数调整输出的稀疏性。
                 probs = entmax(logits / temperature, alpha=ENTMAX_ALPHA, dim=-1)
 
             sample = torch.multinomial(probs, 1)
