@@ -263,9 +263,17 @@ class CustomARWrapper(AutoregressiveWrapper):
                 # Entmax 是 Softmax 的一种变体，允许用户通过参数调整输出的稀疏性。
                 probs = entmax(logits / temperature, alpha=ENTMAX_ALPHA, dim=-1)
 
+            # 从多项分布中采样。在这里，probs 张量表示一个多项分布的概率分布。
+            # 从 probs 中进行一次多项式采样，返回的 sample 是包含采样结果的张量。
+            # 1 是参数 num_samples，表示要采样的样本数量，这里是采样一个样本
+            # sample 中的元素是被选中的类别的索引，这样就可以根据这个索引获取相应类别的信息
             sample = torch.multinomial(probs, 1)
 
+            # 讲sample附加在out上，out参与下一个token预测
             out = torch.cat((out, sample), dim=-1)
+            # mask: 输入的二进制掩码。
+            # (0, 1): 表示填充的配置，其中 (0, 1) 意味着在最后一个维度的右侧填充一个元素，而在其他维度不进行填充。
+            # value=True: 表示用 True 填充。
             mask = F.pad(mask, (0, 1), value=True)
 
             if eos_token is not None and (torch.cumsum(out == eos_token, 1)[:, -1] >= 1).all():

@@ -14,3 +14,5 @@ swin-transformer-ocr/dataset/val.txt
 swin-transformer-ocr/tb_logs
 swin-transformer-ocr/__pycache__
 .idea
+
+test.py
