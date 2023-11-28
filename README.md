@@ -111,8 +111,12 @@ trainer = pl.Trainer(# gpus=device_cnt,
 
 11.24更新
 
-1. - [] 构建完整的大的公式词表（从别的latexocr中获取他们的dict，用我们代码中的util中的save——tokenizer来保存成自己的字典。也可以直接搜latex的官方帮助文档，手动添加一些符号）
+1. - [x] 构建完整的大的公式词表（从别的latexocr中获取他们的dict，用我们代码中的util中的save——tokenizer来保存成自己的字典。也可以直接搜latex的官方帮助文档，手动添加一些符号）
+
+     frequency.txt存储了大公式词表各单词使用频率
+
 2. - [x] 去除掉ground true文本中所有的空格（已经完成）
+
 3. - [x] 改写built-dataset函数，希望数据集路径成为一个单独的超参。(py文件为：new-build-dataset.py;参考命令：python new-build-dataset.py --oldpath datasets_no_test --newpath dataset)
 
 
