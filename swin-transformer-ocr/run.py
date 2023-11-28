@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/test.yaml",
                         help="Experiment settings")
-    parser.add_argument("--version", "-v", type=int, default=4,
+    parser.add_argument("--version", "-v", type=int, default=5,
                         help="Train experiment version")
     parser.add_argument("--load_tokenizer", "-bt", type=str, default="",
                         help="Load pre-built tokenizer")

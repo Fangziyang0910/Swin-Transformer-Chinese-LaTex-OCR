@@ -138,12 +138,11 @@ class CustomCollate(object):
         #做图像的处理，resize，数据增强，转换为tensor，我不喜欢这个resize操作
         if is_train:
             self.transform = alb.Compose([
-
+                        alb.Resize(112, 448),
                         alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
                             border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7),
                         alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
                             value=[255, 255, 255], p=.5),
-                        alb.Resize(112, 448),
                         alb.GaussNoise(10, p=.2),
                         alb.RandomBrightnessContrast(.05, (-.2, 0), True, p=0.2),
                         alb.ImageCompression(95, p=.3),
