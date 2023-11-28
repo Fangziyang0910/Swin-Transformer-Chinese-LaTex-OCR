@@ -13,7 +13,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/test.yaml",
                         help="Experiment settings")
-    parser.add_argument("--version", "-v", type=int, default=5,
+    parser.add_argument("--version", "-v", type=int, default=6,
                         help="Train experiment version")
     parser.add_argument("--load_tokenizer", "-bt", type=str, default="",
                         help="Load pre-built tokenizer")
@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     device_cnt = torch.cuda.device_count()
     strategy = pl.plugins.DDPPlugin(find_unused_parameters=False) if device_cnt > 1 else None
-    trainer = pl.Trainer(# gpus=device_cnt,
-                         gpus=[1,2],
+    trainer = pl.Trainer(gpus=device_cnt,
+                         # gpus=[1,2],
                          max_epochs=cfg.epochs,
                          logger=logger,
                          num_sanity_val_steps=1,

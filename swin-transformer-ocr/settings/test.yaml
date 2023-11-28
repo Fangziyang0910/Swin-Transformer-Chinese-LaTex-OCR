@@ -5,9 +5,9 @@ val_data: "dataset/val.txt"
 tokenizer: "dataset/vocab.pkl"
 save_path: "checkpoints"
 name: "transformer-ocr test"
-txt_dict: "dataset/vocab.txt"
+txt_dict: "dataset/vocab_final.txt"
 
-epochs: 30
+epochs: 300
 
 # Optimizer configurations
 optimizer: "AdamW"

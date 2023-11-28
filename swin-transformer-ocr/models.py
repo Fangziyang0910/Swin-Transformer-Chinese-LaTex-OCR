@@ -111,34 +111,7 @@ class SwinTransformerOCR(pl.LightningModule):
         assert len(gt) == len(pred)
 
         acc = sum([1 if gt[i] == pred[i] else 0 for i in range(len(gt))]) / x.size(0)
-        bleu_score = sum([nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i]) for i in range(len(gt))]) / x.size(0)
-        edit_distance = sum([(1. - (Levenshtein.distance(gt[i], pred[i]) / max(len(gt[i]), len(pred[i]), 1))) for i in range(len(gt))]) / x.size(0)
-        #
-        # # 对批次中的每个样本进行计算
-        # for i in range(x.size(0)):
-        #
-        #     # 计算 BLEU Score
-        #     # 注意：BLEU Score 通常需要一个列表作为参考句子
-        #     bleu_score = nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i])
-        #     total_bleu_score += bleu_score
-        #
-        #     # 计算 Edit Distance
-        #     edit_distance = Levenshtein.distance(gt[i], pred[i])
-        #
-        #     edit_distance = 1. - (edit_distance / max(len(gt[i]),len(pred[i]), 1))
-        #
-        #
-        # # 计算平均指标
-        # avg_bleu_score = total_bleu_score / x.size(0)
-        # avg_edit_distance = total_edit_distance / x.size(0)
-        #
-        # avg_three_metric = (acc+avg_bleu_score+avg_edit_distance)*100./3
 
-        # self.log('val_loss_step', loss)
-        # self.log('accuracy_step', acc)
-        # self.log('val_bleu_step', avg_bleu_score)
-        # self.log('val_edit_distance_step', avg_edit_distance)
-        # self.log('val_overall_step', avg_three_metric)
 
         def calculate_metrics(gt, pred):
             # 计算 BLEU Scores 和 Edit Distances
@@ -146,11 +119,6 @@ class SwinTransformerOCR(pl.LightningModule):
             edit_distances = [1. - (Levenshtein.distance(g, p) / max(len(g), len(p), 1)) for g, p in zip(gt, pred)]
 
             return bleu_scores, edit_distances
-
-        # 示例数据
-        # gt = ... # 实际标签的列表
-        # pred = ... # 预测标签的列表
-        # acc = ... # 准确率
 
         # 计算 BLEU Scores 和 Edit Distances
         bleu_scores, edit_distances = calculate_metrics(gt, pred)
