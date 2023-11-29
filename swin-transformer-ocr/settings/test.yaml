@@ -5,7 +5,7 @@ val_data: "dataset/val.txt"
 tokenizer: "dataset/vocab.pkl"
 save_path: "checkpoints"
 name: "transformer-ocr test"
-txt_dict: "dataset/vocab_final.txt"
+txt_dict: "dataset/vocab.txt"
 
 epochs: 300
 

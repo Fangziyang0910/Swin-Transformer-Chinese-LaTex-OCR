@@ -111,25 +111,37 @@ class SwinTransformerOCR(pl.LightningModule):
         assert len(gt) == len(pred)
 
         acc = sum([1 if gt[i] == pred[i] else 0 for i in range(len(gt))]) / x.size(0)
+        bleu_score = sum([nltk.translate.bleu_score.sentence_bleu([gt[i]], pred[i]) for i in range(len(gt))]) / x.size(0)
+        edit_distance = sum([(1. - (Levenshtein.distance(gt[i], pred[i]) / max(len(gt[i]), len(pred[i]), 1))) for i in range(len(gt))]) / x.size(0)
 
-
-        def calculate_metrics(gt, pred):
-            # 计算 BLEU Scores 和 Edit Distances
-            bleu_scores = [nltk.translate.bleu_score.sentence_bleu([g], p) for g, p in zip(gt, pred)]
-            edit_distances = [1. - (Levenshtein.distance(g, p) / max(len(g), len(p), 1)) for g, p in zip(gt, pred)]
-
-            return bleu_scores, edit_distances
-
-        # 计算 BLEU Scores 和 Edit Distances
-        bleu_scores, edit_distances = calculate_metrics(gt, pred)
-
-        # 将列表转换为 NumPy 数组以利用向量化操作
-        bleu_scores = np.array(bleu_scores)
-        edit_distances = np.array(edit_distances)
-
-        # 计算平均指标
-        bleu_score = np.mean(bleu_scores)
-        edit_distance = np.mean(edit_distances)
+        # def calculate_metrics(gt, pred):
+        #     # 计算 BLEU Scores 和 Edit Distances
+        #     acc = [1 if g == p else 0 for g, p in zip(gt, pred)]
+        #     bleu_scores = [nltk.translate.bleu_score.sentence_bleu([g], p) for g, p in zip(gt, pred)]
+        #     edit_distances = [1. - (Levenshtein.distance(g, p) / max(len(g), len(p), 1)) for g, p in zip(gt, pred)]
+        #
+        #     return bleu_scores, edit_distances, acc
+        #
+        # # 示例数据
+        # # gt = ... # 实际标签的列表
+        # # pred = ... # 预测标签的列表
+        # # acc = ... # 准确率
+        #
+        # # 计算 BLEU Scores 和 Edit Distances
+        # bleu_scores, edit_distances, acc = calculate_metrics(gt, pred)
+        #
+        # # 将列表转换为 NumPy 数组以利用向量化操作
+        # bleu_scores = np.array(bleu_scores)
+        # edit_distances = np.array(edit_distances)
+        # acc = np.array(acc)
+        #
+        # # 计算平均指标
+        # bleu_score = np.mean(bleu_scores)
+        # edit_distance = np.mean(edit_distances)
+        # acc = np.mean(acc)
+        # acc = 0
+        # bleu_score = 0
+        # edit_distance = 0
 
         # 计算综合指标
         avg_three_metric = (acc + bleu_score + edit_distance) * 100. / 3
@@ -255,87 +267,87 @@ class CustomARWrapper(AutoregressiveWrapper):
         self.net.train(was_training)
         return out
     
-    @torch.no_grad()
-    def generate_val(self, start_tokens, seq_len, eos_token=None, temperature=1., filter_logits_fn=top_k, filter_thres=0.9, **kwcfg):
-        was_training = self.net.training
-        num_dims = len(start_tokens.shape)
-        
-        topK=1
-
-        if num_dims == 1:
-            start_tokens = start_tokens[None, :]
-
-        b, t = start_tokens.shape
-
-        self.net.eval()
-        out = start_tokens
-        mask = kwcfg.pop('mask', None)
-        if mask is None:
-            mask = torch.full_like(out, True, dtype=torch.bool, device=out.device)
-
-        out=[out]
-        
-        for i in range(seq_len):
-            
-            out2=[]
-            mask = mask[ :, -self.max_seq_len:]
-            for j in range(len(out)):
-                
-                # eos_token is not None: 这是一个条件，检查是否提供了结束标记。如果 eos_token 不为 None，则说明需要检查结束标记。
-                # (torch.cumsum(out == eos_token, 1)[:, -1] >= 1): 这部分代码使用了 PyTorch 的 torch.cumsum 函数，
-                # 它计算了在 out == eos_token 中每个位置上的累积和。
-                # 然后，[:, -1] 选择了每个序列中最后一个位置的值。最后，>= 1 检查每个序列是否至少包含一个结束标记。
-                # .all(): 这是一个逻辑运算，检查整个张量是否都为 True。如果所有的序列都至少包含一个结束标记，那么这个条件为 True。
-                # 如果以上条件为 True，则说明生成的序列中包含了结束标记，那么 break 语句将退出当前循环
-                if eos_token is not None and (torch.cumsum(out[j] == eos_token, 1)[:, -1] >= 1).all():
-                    out2.append(out[j])
-                    continue
-                
-                x = out[j][ :, -self.max_seq_len:]
-                
-
-                logits = self.net(x, mask=mask, **kwcfg)[:, -1, :]
-
-                if filter_logits_fn in {top_k, top_p}:
-                    # 对给定的 logits（模型的原始输出）进行 top-k 操作。
-                    # 具体而言，它将 logits 中除了前 k 个最大值之外的所有值设置为负无穷（`float('-inf')'）。
-                    filtered_logits = filter_logits_fn(logits, thres=filter_thres)
-                    probs = F.softmax(filtered_logits / temperature, dim=-1)
-
-                elif filter_logits_fn is entmax:
-                    # entmax_bisect 是一个用于计算 Entmax 操作（带有可调整参数的 Softmax）的库中的函数。
-                    # Entmax 是 Softmax 的一种变体，允许用户通过参数调整输出的稀疏性。
-                    probs = entmax(logits / temperature, alpha=ENTMAX_ALPHA, dim=-1)
-
-                # 从多项分布中采样。在这里，probs 张量表示一个多项分布的概率分布。
-                # 从 probs 中进行一次多项式采样，返回的 sample 是包含采样结果的张量。
-                # 1 是参数 num_samples，表示要采样的样本数量，这里是采样一个样本
-                # sample 中的元素是被选中的类别的索引，这样就可以根据这个索引获取相应类别的信息
-                sample = torch.multinomial(probs, 2)
-                # print(out[j].shape)
-                # print(sample.shape)
-                # sample = torch.topk(probs,topK).indices
-
-                # 讲sample附加在out上，out参与下一个token预测
-                # out = torch.cat((out, sample), dim=-1)
-                for ii in range(topK):
-                    out2.append(torch.cat((out[j], sample[0,ii].reshape(1,-1)), dim=-1))     
-                    print(out2)   
-                
-            # mask: 输入的二进制掩码。
-            # (0, 1): 表示填充的配置，其中 (0, 1) 意味着在最后一个维度的右侧填充一个元素，而在其他维度不进行填充。
-            # value=True: 表示用 True 填充。
-            mask = F.pad(mask, (0, 1), value=True)
-                
-            out=out2
-
-        out2 = []
-        for i in range(len(out)):
-            out2.append(out[i][:, t:])
-        out = out2
-
-        if num_dims == 1:
-            out[0] = out[0].squeeze(0)
-
-        self.net.train(was_training)
-        return out[0]
+    # @torch.no_grad()
+    # def generate_val(self, start_tokens, seq_len, eos_token=None, temperature=1., filter_logits_fn=top_k, filter_thres=0.9, **kwcfg):
+    #     was_training = self.net.training
+    #     num_dims = len(start_tokens.shape)
+    #
+    #     topK=1
+    #
+    #     if num_dims == 1:
+    #         start_tokens = start_tokens[None, :]
+    #
+    #     b, t = start_tokens.shape
+    #
+    #     self.net.eval()
+    #     out = start_tokens
+    #     mask = kwcfg.pop('mask', None)
+    #     if mask is None:
+    #         mask = torch.full_like(out, True, dtype=torch.bool, device=out.device)
+    #
+    #     out=[out]
+    #
+    #     for i in range(seq_len):
+    #
+    #         out2=[]
+    #         mask = mask[ :, -self.max_seq_len:]
+    #         for j in range(len(out)):
+    #
+    #             # eos_token is not None: 这是一个条件，检查是否提供了结束标记。如果 eos_token 不为 None，则说明需要检查结束标记。
+    #             # (torch.cumsum(out == eos_token, 1)[:, -1] >= 1): 这部分代码使用了 PyTorch 的 torch.cumsum 函数，
+    #             # 它计算了在 out == eos_token 中每个位置上的累积和。
+    #             # 然后，[:, -1] 选择了每个序列中最后一个位置的值。最后，>= 1 检查每个序列是否至少包含一个结束标记。
+    #             # .all(): 这是一个逻辑运算，检查整个张量是否都为 True。如果所有的序列都至少包含一个结束标记，那么这个条件为 True。
+    #             # 如果以上条件为 True，则说明生成的序列中包含了结束标记，那么 break 语句将退出当前循环
+    #             if eos_token is not None and (torch.cumsum(out[j] == eos_token, 1)[:, -1] >= 1).all():
+    #                 out2.append(out[j])
+    #                 continue
+    #
+    #             x = out[j][ :, -self.max_seq_len:]
+    #
+    #
+    #             logits = self.net(x, mask=mask, **kwcfg)[:, -1, :]
+    #
+    #             if filter_logits_fn in {top_k, top_p}:
+    #                 # 对给定的 logits（模型的原始输出）进行 top-k 操作。
+    #                 # 具体而言，它将 logits 中除了前 k 个最大值之外的所有值设置为负无穷（`float('-inf')'）。
+    #                 filtered_logits = filter_logits_fn(logits, thres=filter_thres)
+    #                 probs = F.softmax(filtered_logits / temperature, dim=-1)
+    #
+    #             elif filter_logits_fn is entmax:
+    #                 # entmax_bisect 是一个用于计算 Entmax 操作（带有可调整参数的 Softmax）的库中的函数。
+    #                 # Entmax 是 Softmax 的一种变体，允许用户通过参数调整输出的稀疏性。
+    #                 probs = entmax(logits / temperature, alpha=ENTMAX_ALPHA, dim=-1)
+    #
+    #             # 从多项分布中采样。在这里，probs 张量表示一个多项分布的概率分布。
+    #             # 从 probs 中进行一次多项式采样，返回的 sample 是包含采样结果的张量。
+    #             # 1 是参数 num_samples，表示要采样的样本数量，这里是采样一个样本
+    #             # sample 中的元素是被选中的类别的索引，这样就可以根据这个索引获取相应类别的信息
+    #             sample = torch.multinomial(probs, 2)
+    #             # print(out[j].shape)
+    #             # print(sample.shape)
+    #             # sample = torch.topk(probs,topK).indices
+    #
+    #             # 讲sample附加在out上，out参与下一个token预测
+    #             # out = torch.cat((out, sample), dim=-1)
+    #             for ii in range(topK):
+    #                 out2.append(torch.cat((out[j], sample[0,ii].reshape(1,-1)), dim=-1))
+    #                 print(out2)
+    #
+    #         # mask: 输入的二进制掩码。
+    #         # (0, 1): 表示填充的配置，其中 (0, 1) 意味着在最后一个维度的右侧填充一个元素，而在其他维度不进行填充。
+    #         # value=True: 表示用 True 填充。
+    #         mask = F.pad(mask, (0, 1), value=True)
+    #
+    #         out=out2
+    #
+    #     out2 = []
+    #     for i in range(len(out)):
+    #         out2.append(out[i][:, t:])
+    #     out = out2
+    #
+    #     if num_dims == 1:
+    #         out[0] = out[0].squeeze(0)
+    #
+    #     self.net.train(was_training)
+    #     return out[0]
