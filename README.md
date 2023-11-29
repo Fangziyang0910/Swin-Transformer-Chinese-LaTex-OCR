@@ -122,10 +122,10 @@ trainer = pl.Trainer(# gpus=device_cnt,
 
 ### 图像处理部分
 
-1. 统计的图像数据集图像尺寸分布情况
-2. 对图像进行resize，目标是弄成一个不大不小的正方形图像（用长边去适应它，然后resize）
-3. 对图像进行padding，padding成一个正方形
-4. 数据增强
+1. - [x] 统计的图像数据集图像尺寸分布情况
+2. - [x]  对图像按比例进行resize，目标是尽量放大,将resize后的图片放到resized_images文件夹中
+3. - [x]  对图像进行padding，padding成一个2：1长方形，padding函数在alb.Compose中与其他数据增强函数放在一起
+4. - [x]  数据增强
 
 ### 模型部分
 
