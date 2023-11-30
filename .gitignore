@@ -1,4 +1,5 @@
 swin-transformer-ocr/datasets_no_test
+swin-transformer-ocr/datasets_no_test.7z
 
 swin-transformer-ocr/checkpoints/*
 !swin-transformer-ocr/checkpoints/.gitkeep
