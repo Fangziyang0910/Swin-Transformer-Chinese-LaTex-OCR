@@ -67,7 +67,7 @@ pip install -r requirments.txt
 1.将数据集自己放进来，放在swin..这个目录下,然后运行一次built-dataset.py(新的数据集进来要改路径)。有点慢请耐心等待，处理好的数据将会放在dataset文件夹中。
 
 ```
-python built-dataset.py
+python new-built-dataset.py
 ```
 
 4.可以开始训练，
@@ -91,7 +91,47 @@ trainer = pl.Trainer(# gpus=device_cnt,
                      resume_from_checkpoint=cfg.resume_train if cfg.resume_train else None)
 ```
 
+## 文件说明
 
+#### new_build_dataset.py
+
+用于得到train.txt：将原本存储在上万个文件中的labels合并成一个文件
+
+使用方法
+
+```
+python new-build-dataset.py --oldpath <oldpath> --newpath <newpath>
+```
+
+oldpath指向datasets_no_test
+
+#### dataset.py
+
+##### CustomDataset
+
+用于导入vocab.txt以建立token表，vocab.txt的存储路径于settings/test.yaml中的txt_dict, 需要根据自己的存放位置进行修改test.yaml
+
+需要修改 CustomCollate中的
+
+```
+alb.PadIfNeeded(min_height=224, min_width=448,border_mode=cv2.BORDER_CONSTANT,value=[255, 255, 255]),
+```
+
+将min_height和min_width与test.yaml中的height,width调整相同。
+
+test.yaml中的image_dir需修改为使用resize.py处理后的（调整尺寸后的）数据集，路径如: "dataset/resized_images"
+
+##### CustomCollate
+
+用于对一个批次的样本数据进行数据增强，其调用返回的是一个批次的(images,labels)，images/labels是一个列表
+
+##### Tokenizer
+
+包含了一些方法用于文本处理和编码解码操作
+
+#### get_useful_vocab.py
+
+用于补充助教给的词表，补充结果已经写在vocab_useful.txt
 
 ## ToDoList
 
