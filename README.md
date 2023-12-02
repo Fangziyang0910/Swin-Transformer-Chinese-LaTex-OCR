@@ -67,10 +67,15 @@ pip install -r requirments.txt
 1.将数据集自己放进来，放在swin..这个目录下,然后运行一次built-dataset.py(新的数据集进来要改路径)。有点慢请耐心等待，处理好的数据将会放在dataset文件夹中。
 
 ```
-python new-built-dataset.py
+python new-built-dataset.py --oldpath datasets_no_test --newpath dataset
+```
+2.运行resize.py。在dataset中得到resized_images文件夹，用该文件夹作为图像文件夹参数传入
+
+```
+python resize.py --path dataset --target_ratio 2 --target_width 448
 ```
 
-4.可以开始训练，
+3.可以开始训练，
 
 ```
 python run.py --batch_size==16 # 根据自己的gpu实力自己调
