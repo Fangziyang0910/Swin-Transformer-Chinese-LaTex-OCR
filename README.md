@@ -133,6 +133,10 @@ test.yaml中的image_dir需修改为使用resize.py处理后的（调整尺寸�
 
 用于补充助教给的词表，补充结果已经写在vocab_useful.txt
 
+#### predict.py
+
+`python predict.py --srcpath <image文件夹路径> --ids <test_ids.txt路径> --checkpoint <权重文件路径> --result  <输出结果地址>`
+
 ## ToDoList
 
 ### 文本处理部分

@@ -8,7 +8,6 @@ import albumentations as alb
 from albumentations.pytorch import ToTensorV2
 
 
-
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, cfg, txt_fn):
         self.cfg = cfg
@@ -17,9 +16,8 @@ class CustomDataset(torch.utils.data.Dataset):
 
         self.new_word_count = {}  # 新词出现次数的计数器
 
-
         # build one
-        self.token_id_dict = {   # 文本到idx的映射  idx到文本的映射
+        self.token_id_dict = {  # 文本到idx的映射  idx到文本的映射
             "token2id": {
                 "[PAD]": cfg.pad_token,
                 "[BOS]": cfg.bos_token,
@@ -36,7 +34,7 @@ class CustomDataset(torch.utils.data.Dataset):
         # 从txt中加载公式分词数据
         self.txt_dict = self.load_dictionary(self.cfg.txt_dict)
 
-        skip_cnt, token_cnt = 0, 4 # 跳过计数和词计数
+        skip_cnt, token_cnt = 0, 4  # 跳过计数和词计数
         # 直接先将t现有的xt分词加到字典里面
         for token in self.txt_dict:
             # 确保不重复添加
@@ -48,7 +46,7 @@ class CustomDataset(torch.utils.data.Dataset):
         with open(txt_fn, 'r', encoding='utf8') as f:
             for line in f:
                 try:
-                    fn, text = line.strip().split('\t', 1) # 分成fn和文本
+                    fn, text = line.strip().split('\t', 1)  # 分成fn和文本
                 except ValueError:
                     skip_cnt += 1
                     continue
@@ -69,7 +67,6 @@ class CustomDataset(torch.utils.data.Dataset):
                                 token_cnt += 1
 
         print(f"{len(self.images)} data loaded. ({skip_cnt} data skipped)")
-
 
     def __len__(self):
         return len(self.images)
@@ -117,7 +114,8 @@ class CustomDataset(torch.utils.data.Dataset):
             # 使用集合来存储分词，自动去除重复项
             word_set = set(word.strip() for word in file)
         return word_set
-        
+
+
 '''关于数据增强函数的注解：
 alb.Resize:将输入图像调整为指定的尺寸大小（112x448）
 alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
@@ -131,33 +129,37 @@ alb.ToGray(always_apply=True):变灰图
 alb.Normalize():归一化*
 ToTensorV2():将图像从numpy数组格式转换为tensor格式'''
 
+
 class CustomCollate(object):
     def __init__(self, cfg, tokenizer, is_train=True):
         self.cfg = cfg
         self.tokenizer = tokenizer
-        #做图像的处理，resize，数据增强，转换为tensor，我不喜欢这个resize操作
-        #将resized_image文件夹中的图像进行处理
+        # 做图像的处理，resize，数据增强，转换为tensor，我不喜欢这个resize操作
+        # 将resized_image文件夹中的图像进行处理
         if is_train:
             self.transform = alb.Compose([
-                        #alb.Resize(112, 448),
-                        alb.PadIfNeeded(min_height=224, min_width=448,border_mode=cv2.BORDER_CONSTANT,value=[255, 255, 255]),
-                        alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
-                            border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7),
-                        alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
-                            value=[255, 255, 255], p=.5),
-                        alb.GaussNoise(10, p=.2),
-                        alb.RandomBrightnessContrast(.05, (-.2, 0), True, p=0.2),
-                        alb.ImageCompression(95, p=.3),
-                        alb.ToGray(always_apply=True),
-                        alb.Normalize(),
-                        # alb.Sharpen()
-                        ToTensorV2(),
-                    ]
-                )
+                # alb.Resize(112, 448),
+                alb.PadIfNeeded(min_height=112, min_width=448, border_mode=cv2.BORDER_CONSTANT, value=[255, 255, 255]),
+                alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
+                                     border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7),
+                alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
+                                   value=[255, 255, 255], p=.5),
+                alb.GaussNoise(10, p=.2),
+                alb.RandomBrightnessContrast(.05, (-.2, 0), True, p=0.2),
+                alb.ImageCompression(95, p=.3),
+                alb.ToGray(always_apply=True),
+                alb.Normalize(),
+                # alb.Sharpen()
+                ToTensorV2(),
+            ]
+            )
         else:
             self.transform = alb.Compose(
                 [
-                    alb.Resize(cfg.height, cfg.width),
+                    # padifneeded/resize选择一个
+                    alb.PadIfNeeded(min_height=112, min_width=448, border_mode=cv2.BORDER_CONSTANT,
+                                    value=[255, 255, 255]),
+                    # alb.Resize(cfg.height, cfg.width),
                     alb.ImageCompression(95, p=.3),
                     alb.ToGray(always_apply=True),
                     alb.Normalize(),
@@ -183,15 +185,35 @@ class CustomCollate(object):
 
         return (images, labels)
 
-    def ready_image(self, image):
-        if isinstance(image, Path):
-            image = np.array(Image.open(image))
+    def ready_image(self, image, shape):
+        height, width = shape[0], shape[1]
+        ratio = width / height
+        if isinstance(image, str):
+            image = Image.open(image)
+            current_ratio = image.width / image.height
+            if (current_ratio >= ratio):  # 比较宽的图片，按宽的比例resize
+                new_width = width
+                new_height = int(width / current_ratio)
+            else:  # 比较高的图片，按高的比例resize
+                new_height = height
+                new_width = int(current_ratio * height)
+            image = image.resize((new_width, new_height))
+            image = np.array(image)
         elif isinstance(image, Image.Image):
+            current_ratio = image.width / image.height
+            if (current_ratio >= ratio):  # 比较宽的图片，按宽的比例resize
+                new_width = width
+                new_height = width / current_ratio
+            else:  # 比较高的图片，按高的比例resize
+                new_height = height
+                new_width = current_ratio * height
+            image = image.resize((new_width, new_height))
             image = np.array(image)
         elif isinstance(image, np.ndarray):
             pass
         else:
             raise ValueError
+
         image = self.transform(image=image)["image"].unsqueeze(0)
         return image
 
@@ -225,7 +247,7 @@ class Tokenizer:
                 index -= 1
         return token_list
 
-    def encode(self, texts: list):  #文本的encoder操作，处理成同样长度的序列，用mask标记空白部分
+    def encode(self, texts: list):  # 文本的encoder操作，处理成同样长度的序列，用mask标记空白部分
         """
         text:
             list of string form text
@@ -241,7 +263,7 @@ class Tokenizer:
         ids = []
         for text in texts:
             text = self.FMM_func(self.token2id, text)  # 先进行分词，然后再转为emmbeding
-            encoded = [bos,]
+            encoded = [bos, ]
             for token in text:
                 try:
                     encoded.append(self.token2id[token])
@@ -257,7 +279,7 @@ class Tokenizer:
 
         return seq.long(), mask.bool()
 
-    def decode(self, labels): #解码部分
+    def decode(self, labels):  # 解码部分
         """
         labels:
             [B, L] : B for batch size, L for Sequence Length
