@@ -139,8 +139,8 @@ class CustomCollate(object):
         #将resized_image文件夹中的图像进行处理
         if is_train:
             self.transform = alb.Compose([
-                        #alb.Resize(112, 448),
-                        alb.PadIfNeeded(min_height=224, min_width=448,border_mode=cv2.BORDER_CONSTANT,value=[255, 255, 255]),
+                        # alb.Resize(112, 448),
+                        alb.PadIfNeeded(min_height=112, min_width=448,border_mode=cv2.BORDER_CONSTANT,value=[255, 255, 255]),
                         alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
                             border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7),
                         alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
