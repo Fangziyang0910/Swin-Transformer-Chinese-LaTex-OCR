@@ -24,6 +24,7 @@ def build_dataset(oldpath,newpath):
             lines = f.readlines()
         data = ''
         for line in lines:
+            # data += line.rstrip().replace(' ', '')
             data += line.rstrip()
         with open(traintxt, 'a', encoding='utf-8') as f:
             fileName = file[:-4] + '.png'
@@ -37,6 +38,7 @@ def build_dataset(oldpath,newpath):
             lines = f.readlines()
         data = ''
         for line in lines:
+            # data += line.rstrip().replace(' ', '')
             data += line.rstrip()
         with open(valtxt, 'a', encoding='utf-8') as f:
             fileName = file[:-4] + '.png'
@@ -51,8 +53,8 @@ def build_dataset(oldpath,newpath):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--oldpath', type=str, help='原始数据文件夹路径')
-    parser.add_argument('--newpath', type=str, help='新数据文件夹路径')
+    parser.add_argument('--oldpath', type=str, default="origin_dataset1", help='原始数据文件夹路径')
+    parser.add_argument('--newpath', type=str, default="dataset1", help='新数据文件夹路径')
     args = parser.parse_args()
 
     oldpath = args.oldpath

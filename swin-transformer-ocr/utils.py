@@ -130,5 +130,5 @@ class CustomCosineAnnealingWarmupRestarts(_LRScheduler):
 
 
 if __name__ == '__main__':
-    tokenizer = load_tokenizer("checkpoints/version_1/transformer-ocr_test.pkl")
+    tokenizer = load_tokenizer("dataset/vocab_final.pkl")
     print(tokenizer.token2id)

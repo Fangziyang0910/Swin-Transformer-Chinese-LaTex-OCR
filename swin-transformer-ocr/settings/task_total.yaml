@@ -1,13 +1,13 @@
 # Input/Output/Name
-image_dir: "dataset1/resized_images"
-train_data: "dataset1/train.txt"
-val_data: "dataset1/val.txt"
-tokenizer: "dataset/vocab.pkl"
+image_dir: "dataset/resized_images"
+train_data: "dataset/train.txt"
+val_data: "dataset/val.txt"
+tokenizer: "dataset/vocab_final.pkl"
 save_path: "checkpoints"
-name: "transformer-ocr test1"
+name: "transformer-ocr task_total"
 txt_dict: "dataset/vocab_final.txt"
 
-epochs: 300
+epochs: 100
 
 # Optimizer configurations
 optimizer: "AdamW"

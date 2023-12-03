@@ -25,10 +25,10 @@ def FMM_func(user_dict, sentence):
     return token_list
 
 
-input_label_dir = '../datasets_no_test/train/labels/'
+input_label_dir = 'data/origin_dataset2/train/labels/'
 
 label_name_list = os.listdir(input_label_dir)
-with open('dataset/vocab_new.txt', 'r', encoding='utf-8') as f:
+with open('data/vocab_new.txt', 'r', encoding='utf-8') as f:
     vocab = f.read().split()
 
 counter = {word: 0 for word in vocab}
@@ -51,20 +51,20 @@ for label in label_name_list:
 
 # 删除未使用的word
 useful_vocab = [word for word in vocab if counter[word] > 0]
-with open('dataset/vocab_useful.txt', 'w', encoding='utf-8') as f2:
+with open('data/vocab_useful.txt', 'w', encoding='utf-8') as f2:
     for word in useful_vocab:
         f2.write(word + '\n')
 
-# 统计各个word的使用频率
-frequency = {word: value / count for word, value in counter.items()}
-
-unuseful_vocab_counter = 0
-for _, value in frequency.items():
-    if value == 0:
-        unuseful_vocab_counter += 1
-print('unuseful_vocab_counter:' + str(unuseful_vocab_counter))
-
-with open('dataset/frequency.txt', 'w', encoding='utf-8') as f3:
-    for word, fre in frequency.items():
-        line = word + ':' + str(fre) + '\n'
-        f3.write(line)
+# # 统计各个word的使用频率
+# frequency = {word: value / count for word, value in counter.items()}
+#
+# unuseful_vocab_counter = 0
+# for _, value in frequency.items():
+#     if value == 0:
+#         unuseful_vocab_counter += 1
+# print('unuseful_vocab_counter:' + str(unuseful_vocab_counter))
+#
+# with open('dataset/frequency.txt', 'w', encoding='utf-8') as f3:
+#     for word, fre in frequency.items():
+#         line = word + ':' + str(fre) + '\n'
+#         f3.write(line)

@@ -63,7 +63,7 @@ class CustomDataset(torch.utils.data.Dataset):
                     for token in text_tokens:
                         if token not in self.token_id_dict["token2id"]:
                             self.new_word_count[token] = self.new_word_count.get(token, 0) + 1
-                            if self.new_word_count[token] > 5:
+                            if self.new_word_count[token] > 3:
                                 self.token_id_dict["token2id"][token] = token_cnt
                                 self.token_id_dict["id2token"][token_cnt] = token
                                 token_cnt += 1
@@ -157,7 +157,9 @@ class CustomCollate(object):
         else:
             self.transform = alb.Compose(
                 [
-                    alb.Resize(cfg.height, cfg.width),
+                    # alb.Resize(cfg.height, cfg.width),
+                    alb.PadIfNeeded(min_height=224, min_width=448, border_mode=cv2.BORDER_CONSTANT,
+                                    value=[255, 255, 255]),
                     alb.ImageCompression(95, p=.3),
                     alb.ToGray(always_apply=True),
                     alb.Normalize(),

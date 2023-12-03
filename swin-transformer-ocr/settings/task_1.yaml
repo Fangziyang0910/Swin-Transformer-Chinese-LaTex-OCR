@@ -2,10 +2,10 @@
 image_dir: "dataset1/resized_images"
 train_data: "dataset1/train.txt"
 val_data: "dataset1/val.txt"
-tokenizer: "dataset/vocab.pkl"
+tokenizer: "dataset1/vocab_final_1.pkl"
 save_path: "checkpoints"
-name: "transformer-ocr test1"
-txt_dict: "dataset/vocab_final.txt"
+name: "transformer-ocr task1"
+txt_dict: "dataset1/vocab_final_1.txt"
 
 epochs: 300
 

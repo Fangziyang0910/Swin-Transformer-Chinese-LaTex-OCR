@@ -1,13 +1,13 @@
 # Input/Output/Name
-image_dir: "dataset1/resized_images"
-train_data: "dataset1/train.txt"
-val_data: "dataset1/val.txt"
-tokenizer: "dataset/vocab.pkl"
+image_dir: "dataset/resized_images"
+train_data: "dataset/train.txt"
+val_data: "dataset/val.txt"
+tokenizer: "dataset/vocab_final.pkl"
 save_path: "checkpoints"
-name: "transformer-ocr test1"
+name: "transformer-ocr task_total"
 txt_dict: "dataset/vocab_final.txt"
 
-epochs: 300
+epochs: 60
 
 # Optimizer configurations
 optimizer: "AdamW"
@@ -28,7 +28,7 @@ height: 224
 channels: 3
 
 # Encoder
-encoder_dim: 96
+encoder_dim: 192
 patch_size: 4
 window_size: 7
 encoder_depth: [2, 6, 2]
@@ -36,7 +36,7 @@ encoder_heads: [6, 12, 24]
 
 # Decoder
 max_seq_len: 128
-decoder_dim: 384
+decoder_dim: 768
 decoder_heads: 8
 decoder_depth: 4
 decoder_cfg: 

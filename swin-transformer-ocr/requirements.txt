@@ -10,4 +10,6 @@ timm==0.4.12
 x_transformers==0.20.4
 nltk==3.8.1
 python-levenshtein==0.23.0
+opencv-python==4.5.3.56
+opencv-python-headless==4.5.3.56
 

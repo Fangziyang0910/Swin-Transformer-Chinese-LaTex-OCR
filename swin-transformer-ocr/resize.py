@@ -11,7 +11,7 @@ def resize_images(path, target_ratio,target_width):
     parent_folder_path = path
     for file_name in file_list:
         # 构建完整的文件路径
-        file_path = os.path.join(path+'\images',file_name)
+        file_path = os.path.join(path+'/images',file_name)
             # 使用 OpenCV 读取图片
         image = cv2.imread(file_path)
             # 获取图片的长宽
@@ -38,9 +38,9 @@ def resize_images(path, target_ratio,target_width):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--path', type=str, help='dataset路径')
-    parser.add_argument('--target_ratio', type=float, help='目标宽高比')
-    parser.add_argument('--target_width', type=int, help='目标宽长')
+    parser.add_argument('--path', type=str, default="dataset1", help='dataset路径')
+    parser.add_argument('--target_ratio', type=float, default=2, help='目标宽高比')
+    parser.add_argument('--target_width', type=int, default=448, help='目标宽长')
     args = parser.parse_args()
     path =args.path
     target_ratio=args.target_ratio

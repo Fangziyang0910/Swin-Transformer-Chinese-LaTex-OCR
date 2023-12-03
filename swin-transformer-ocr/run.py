@@ -11,15 +11,15 @@ from torch.utils.data import DataLoader
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--setting", "-s", type=str, default="settings/test.yaml",
+    parser.add_argument("--setting", "-s", type=str, default="settings/task_total_test.yaml",
                         help="Experiment settings")
-    parser.add_argument("--version", "-v", type=int, default=7,
+    parser.add_argument("--version", "-v", type=int, default=4,
                         help="Train experiment version")
-    parser.add_argument("--load_tokenizer", "-bt", type=str, default="",
+    parser.add_argument("--load_tokenizer", "-bt", type=str, default="dataset/vocab_final.pkl",
                         help="Load pre-built tokenizer")
     parser.add_argument("--num_workers", "-nw", type=int, default=16,
                         help="Number of workers for dataloader")
-    parser.add_argument("--batch_size", "-bs", type=int, default=96,
+    parser.add_argument("--batch_size", "-bs", type=int, default=40,
                         help="Batch size for training and validate")
     parser.add_argument("--resume_train", "-rt", type=str, default="",
                         help="Resume train from certain checkpoint")
@@ -41,6 +41,7 @@ if __name__ == "__main__":
         (Path(cfg.save_path) / f"version_{cfg.version}").mkdir(exist_ok=True)
         save_path = "{}/{}/{}.pkl".format(cfg.save_path, f"version_{cfg.version}", cfg.name.replace(' ', '_'))
         save_tokenizer(tokenizer,  save_path)
+        tokenizer = load_tokenizer(save_path)
 
     train_collate = CustomCollate(cfg, tokenizer, is_train=True)
     val_collate = CustomCollate(cfg, tokenizer, is_train=False)
