@@ -17,3 +17,4 @@ swin-transformer-ocr/__pycache__
 .idea
 
 test.py
+swin-transformer-ocr/validation.py
