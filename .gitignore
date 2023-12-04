@@ -18,6 +18,4 @@ swin-transformer-ocr/__pycache__
 .idea
 
 test.py
-
-swin-transformer-ocr/data
-swin-transformer-ocr/dataset1
+swin-transformer-ocr/validation.py
