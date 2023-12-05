@@ -24,4 +24,5 @@ swin-transformer-ocr/dataset/ztrain.txt
 swin-transformer-ocr/dataset/zval.txt
 swin-transformer-ocr/dataset/dataset1/
 swin-transformer-ocr/dataset/dataset2/
-swin-transformer-ocr/logging/
+swin-transformer-ocr/logging/*
+!swin-transformer-ocr/logging/spilt_txt.py
