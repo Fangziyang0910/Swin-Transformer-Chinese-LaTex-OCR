@@ -24,6 +24,7 @@ from torch.utils.data import DataLoader
 from datetime import datetime
 import sys
 import logging
+import time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -45,11 +46,11 @@ if __name__ == "__main__":
     cfg.update(vars(args))
     print("setting:", cfg)
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = 'cuda' #torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # load
     tokenizer = load_tokenizer(cfg.tokenizer)
-    model = SwinTransformerOCR(cfg, tokenizer)
+    model = SwinTransformerOCR(cfg, tokenizer).to(device)
     saved = torch.load(cfg.checkpoint, map_location=device)
     model.load_state_dict(saved['state_dict'])
     val_set = CustomDataset(cfg, cfg.val_data)
@@ -73,21 +74,26 @@ if __name__ == "__main__":
     accs=0.
     overalls=0.
     
-    # current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    # log_filename = "./logging/"+f"overall_{current_time}.txt"
-    # file=open(log_filename, 'w')
-    # sys.stdout = file
+    current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    log_filename = "./logging/"+f"overall_{current_time}.txt"
+    file=open(log_filename, 'w')
+    sys.stdout = file
     
     for x,y in valid_dataloader:
         # if i==9:
         #     break
-        # print('batch {}'.format(i))
+        print('batch {}'.format(i))
         i+=1
+        x=x.to(device)
         tgt_seq, tgt_mask = y
+        tgt_seq=tgt_seq.to(device)
+        tgt_mask=tgt_mask.to(device)
         encoded = model.encoder(x)
         loss = model.decoder(tgt_seq, mask=tgt_mask, context=encoded)
+        t1=time.time()
         dec = model.decoder.generate_v3((torch.ones(x.size(0),1)*model.bos_token).long().to(x.device), model.max_seq_len,
                                     eos_token=model.eos_token, context=encoded, temperature=model.temperature)
+        t2=time.time()
         gt = model.tokenizer.decode(tgt_seq)
         # print(gt)
         pred = model.tokenizer.decode(dec)
@@ -102,7 +108,7 @@ if __name__ == "__main__":
         # 计算综合指标
         avg_three_metric = (acc + bleu_score + edit_distance) * 100. / 3
         
-        print(f'{i} {loss} {bleu_score} {edit_distance} {acc} {avg_three_metric}')
+        print(f'{t2-t1}sec  {i} {loss} {bleu_score} {edit_distance} {acc} {avg_three_metric}')
 
         # val_losses+=loss
         # avg_bleu_scores+=bleu_score

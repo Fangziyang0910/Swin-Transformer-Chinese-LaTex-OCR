@@ -412,29 +412,32 @@ class CustomARWrapper(AutoregressiveWrapper):
 
         b, t = start_tokens.shape
 
-        top_k=2
+        top_k=10
         self.net.eval()
-        out = start_tokens #[batch,1]
-        device=out.device
+        device='cuda'
+        out = start_tokens.to(device) #[batch,1]
         #print('1',out.shape)
         out=out[:,None,:] #[batch,1,1]
         #print('2',out.shape)
         out = out.expand(-1, top_k, -1) #[batch,k,1]
         #print('3',out.shape)
-        log_sumk=torch.zeros(b,top_k) #[batch,k]
+        log_sumk=torch.zeros(b,top_k).to(device) #[batch,k]
         #print('4',log_sumk.shape)
-        lc_k=torch.zeros(b,top_k) #[batch,k]
+        lc_k=torch.zeros(b,top_k).to(device) #[batch,k]
         #print('5',lc_k.shape)
         mask = kwcfg.pop('mask', None)
         if mask is None:
-            mask = torch.full_like(out, True, dtype=torch.bool, device=out.device)
+            mask = torch.full_like(out, True, dtype=torch.bool).to(device)
         #print('6',mask.shape)
+        
+        context=kwcfg['context'].to(device)
 
         for _ in range(seq_len):
             selected_data = out[:, :, None, :]
             #print('6.1',selected_data.shape)
             expanded_data = selected_data.expand(-1, -1, top_k, -1).contiguous().view(b, top_k*top_k, -1) #[batch,k*k,t]
             #print('7',expanded_data.shape)
+            # print('7',expanded_data.device)
             
             # x = out[:, -self.max_seq_len:]
             x=out[:,:,-self.max_seq_len:]
@@ -444,9 +447,10 @@ class CustomARWrapper(AutoregressiveWrapper):
 
             # logits = self.net(x, mask=mask, **kwcfg)[:, -1, :] 
             
-            expanded_tensor = torch.unsqueeze(kwcfg['context'], 1) # [batch,embedding]->[batch,1,embedding]
+            expanded_tensor = torch.unsqueeze(context, 1) # [batch,embedding]->[batch,1,embedding]
             broadcasted_tensor = expanded_tensor.expand(-1, top_k, -1,-1).contiguous() # [batch,1,embedding]->[batch,k,embedding]->[batch*k,embedding]
             #print('7.01',broadcasted_tensor.shape)
+            # print('7.01',broadcasted_tensor.device)
             dim2=broadcasted_tensor.shape[-2]
             dim3=broadcasted_tensor.shape[-1]
             broadcasted_tensor=broadcasted_tensor.reshape(b*top_k,dim2,dim3)
@@ -456,6 +460,9 @@ class CustomARWrapper(AutoregressiveWrapper):
             #print('7.1',x.shape)
             #print('7.2',mask.shape)
             #print('7.3',broadcasted_tensor.shape)
+            # print('7.1',x.device)
+            # print('7.2',mask.device)
+            # print('7.3',kwargs['context'].device)
             logits = self.net(x, mask=mask, **kwargs)[:, -1, :] #[batch,k,t]->[batch,k,1,n-gram],reshape->[batch,k,n-gram]
             #print('8',logits.shape)
             logits=logits.reshape(b,top_k,-1)
@@ -480,6 +487,7 @@ class CustomARWrapper(AutoregressiveWrapper):
             # sample = torch.multinomial(probs, 1)
             topk_values, topk_indices = torch.topk(probs, top_k, dim=-1) #[batch,k,n-gram]->[batch,k,k],[batch,k,n-gram]->[batch,k,k]
             #print('9',topk_indices.shape)
+            # print('9',topk_indices.device)
             topk_values = topk_values.reshape(b,-1) #[batch,k*k]
             #print('10',topk_values.shape)
             log_sumkk=log_sumk.unsqueeze(2).expand(-1, -1, top_k).reshape(b,-1) #[batch,k]->[batch,k*k]
