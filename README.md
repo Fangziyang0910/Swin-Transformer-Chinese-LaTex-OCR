@@ -196,3 +196,8 @@ python validation.py --tokenizer <pkl文件路径> --checkpoint <权重文件路
 1. - [x] 使用beam_search束搜索预测输出序列，避免贪心搜索陷入局部最优解的问题
 2. - [x] 对beam_search进行改进，使用向量操作进行批处理，代替for循环的冗余操作
 3. - [x] 使用l约束的beam_search，通过增加序列长度约束，避免模型倾向于生成短序列
+
+### gui展示
+
+1. - [x] 使用django框架实现前后端
+2. - [x] 将模型初始化和调用predict写入视图函数

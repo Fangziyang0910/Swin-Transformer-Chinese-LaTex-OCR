@@ -28,6 +28,9 @@ swin-transformer-ocr/dataset/dataset2/
 swin-transformer-ocr/logging/*
 !swin-transformer-ocr/logging/spilt_txt.py
 
+
 swin-transformer-ocr/data
 swin-transformer-ocr/dataset1
 
+
+swin-transformer-ocr/db.sqlite3
