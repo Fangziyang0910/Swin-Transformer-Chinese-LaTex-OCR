@@ -142,6 +142,14 @@ test.yaml中的image_dir需修改为使用resize.py处理后的（调整尺寸�
 
 `python predict.py --srcpath <image文件夹路径> --ids <test_ids.txt路径> --checkpoint <权重文件路径> --result  <输出结果地址>`
 
+#### validation.py
+
+validation使用beam_search搜素输出序列，每个batch的预测分数保存在./logging下的txt文件中，使用./spilt_txt.py提取平均分数
+
+```
+python validation.py --tokenizer <pkl文件路径> --checkpoint <权重文件路径>
+```
+
 ## ToDoList
 
 ### 文本处理部分
@@ -180,5 +188,11 @@ test.yaml中的image_dir需修改为使用resize.py处理后的（调整尺寸�
 
 ### 模型指标部分
 
-1. - [ ] 生成文本质量指标包括bleu_score, edit_distance, token_accuracy，实现方法将参照项目 [LatexOCR](https://github.com/lukas-blecher/LaTeX-OCR)
-2. - [ ] 指标计算部分集成在SwinTransformerOCR中
+1. - [x] 生成文本质量指标包括bleu_score, edit_distance, token_accuracy，实现方法将参照项目 [LatexOCR](https://github.com/lukas-blecher/LaTeX-OCR)
+2. - [x] 指标计算部分集成在SwinTransformerOCR中
+
+### 推理优化
+
+1. - [x] 使用beam_search束搜索预测输出序列，避免贪心搜索陷入局部最优解的问题
+2. - [x] 对beam_search进行改进，使用向量操作进行批处理，代替for循环的冗余操作
+3. - [x] 使用l约束的beam_search，通过增加序列长度约束，避免模型倾向于生成短序列
