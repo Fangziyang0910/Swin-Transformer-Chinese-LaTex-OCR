@@ -1,5 +1,5 @@
-file_path1 = "overall_2023-12-04_19-23-28.txt"  # 请替换成你的文本文件路径
-file_path2 = "overall_2023-12-04_20-33-40.txt"  # 请替换成你的文本文件路径
+file_path1 = "overall_2023-12-05_13-59-03.txt"  # 请替换成你的文本文件路径
+file_path2 = "overall_2023-12-05_07-28-47.txt"  # 请替换成你的文本文件路径
 
 # 打开文本文件
 with open(file_path1, 'r') as file:

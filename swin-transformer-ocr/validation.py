@@ -7,6 +7,9 @@ from utils import load_setting, load_tokenizer
 from models import SwinTransformerOCR
 from dataset import CustomCollate
 
+from tqdm import tqdm
+
+
 import nltk
 import Levenshtein
 
@@ -30,9 +33,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/task_total.yaml",
                         help="Experiment settings")
-    parser.add_argument("--tokenizer", "-tk", type=str, required=True,
+    parser.add_argument("--tokenizer", "-tk", type=str, default="dataset/vocab_final.pkl",required=False,
                         help="Load pre-built tokenizer")
-    parser.add_argument("--checkpoint", "-c", type=str, required=True,
+    parser.add_argument("--checkpoint", "-c", type=str, default="/home/fzy/DLC2023/swin-transformer-ocr/weights/checkpoints-epoch=96-val_overall_score=90.03386-accuracy=0.85575-val_bleu=0.88021-val_edit_distance=0.96506-val_loss=0.04882.ckpt", required=False,
                         help="Load model weight in checkpoint")
     parser.add_argument("--load_tokenizer", "-bt", type=str, default="",
                         help="Load pre-built tokenizer")
@@ -78,11 +81,12 @@ if __name__ == "__main__":
     log_filename = "./logging/"+f"overall_{current_time}.txt"
     file=open(log_filename, 'w')
     sys.stdout = file
-    
-    for x,y in valid_dataloader:
+
+    for i, (x, y) in enumerate(tqdm(valid_dataloader, desc="Validating")):
+    # for x,y in valid_dataloader:
         # if i==9:
         #     break
-        print('batch {}'.format(i))
+        # print('batch {}'.format(i))
         i+=1
         x=x.to(device)
         tgt_seq, tgt_mask = y
@@ -91,7 +95,7 @@ if __name__ == "__main__":
         encoded = model.encoder(x)
         loss = model.decoder(tgt_seq, mask=tgt_mask, context=encoded)
         t1=time.time()
-        dec = model.decoder.generate_v3((torch.ones(x.size(0),1)*model.bos_token).long().to(x.device), model.max_seq_len,
+        dec = model.decoder.generate((torch.ones(x.size(0),1)*model.bos_token).long().to(x.device), model.max_seq_len,
                                     eos_token=model.eos_token, context=encoded, temperature=model.temperature)
         t2=time.time()
         gt = model.tokenizer.decode(tgt_seq)
