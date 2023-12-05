@@ -62,7 +62,7 @@ class CustomDataset(torch.utils.data.Dataset):
                     for token in text_tokens:
                         if token not in self.token_id_dict["token2id"]:
                             self.new_word_count[token] = self.new_word_count.get(token, 0) + 1
-                            if self.new_word_count[token] > 3:
+                            if self.new_word_count[token] > 5:
                                 self.token_id_dict["token2id"][token] = token_cnt
                                 self.token_id_dict["id2token"][token_cnt] = token
                                 token_cnt += 1
@@ -141,7 +141,7 @@ class CustomCollate(object):
             self.transform = alb.Compose([
 
                 # alb.Resize(112, 448),
-                alb.PadIfNeeded(min_height=224, min_width=448, border_mode=cv2.BORDER_CONSTANT, value=[255, 255, 255]),
+                alb.PadIfNeeded(min_height=self.cfg.height, min_width=self.cfg.width, border_mode=cv2.BORDER_CONSTANT, value=[255, 255, 255]),
                 alb.ShiftScaleRotate(shift_limit=0, scale_limit=(0., 0.15), rotate_limit=1,
                                      border_mode=0, interpolation=3, value=[255, 255, 255], p=0.7),
                 alb.GridDistortion(distort_limit=0.1, border_mode=0, interpolation=3,
@@ -159,11 +159,12 @@ class CustomCollate(object):
         else:
             self.transform = alb.Compose(
                 [
-                    # alb.Resize(cfg.height, cfg.width),
-                    alb.PadIfNeeded(min_height=224, min_width=448, border_mode=cv2.BORDER_CONSTANT,
+                    # padifneeded/resize选择一个
+                    alb.PadIfNeeded(min_height=self.cfg.height, min_width=self.cfg.width, border_mode=cv2.BORDER_CONSTANT,
                                     value=[255, 255, 255]),
+                    # alb.Resize(cfg.height, cfg.width),
                     alb.ImageCompression(95, p=.3),
-                    alb.ToGray(always_apply=True),
+                    # alb.ToGray(always_apply=True),
                     alb.Normalize(),
                     # alb.Sharpen()
                     ToTensorV2(),
@@ -192,6 +193,52 @@ class CustomCollate(object):
         ratio = width / height
         if isinstance(image, str):
             image = Image.open(image)
+            channels = len(image.split())
+            if channels == 3:
+                transform = alb.Compose(
+                    [
+                        # padifneeded/resize选择一个
+                        alb.PadIfNeeded(min_height=self.cfg.height, min_width=self.cfg.width, border_mode=cv2.BORDER_CONSTANT,
+                                        value=[255, 255, 255]),
+                        # alb.Resize(cfg.height, cfg.width),
+                        alb.ImageCompression(95, p=.3),
+                        alb.ToGray(always_apply=True),
+                        alb.Normalize(),
+                        # alb.Sharpen()
+                        ToTensorV2(),
+                    ]
+                )
+            elif channels == 4:
+                image = image.convert('RGB')
+                transform = alb.Compose(
+                    [
+                        # padifneeded/resize选择一个
+                        alb.PadIfNeeded(min_height=self.cfg.height, min_width=self.cfg.width, border_mode=cv2.BORDER_CONSTANT,
+                                        value=[255, 255, 255]),
+                        # alb.Resize(cfg.height, cfg.width),
+                        alb.ImageCompression(95, p=.3),
+                        alb.ToGray(always_apply=True),
+                        alb.Normalize(),
+                        # alb.Sharpen()
+                        ToTensorV2(),
+                    ]
+                )
+            elif channels == 1:
+                transform = alb.Compose(
+                    [
+                        # padifneeded/resize选择一个
+                        alb.PadIfNeeded(min_height=self.cfg.height, min_width=self.cfg.width, border_mode=cv2.BORDER_CONSTANT,
+                                        value=[255, 255, 255]),
+                        # alb.Resize(cfg.height, cfg.width),
+                        alb.ImageCompression(95, p=.3),
+                        # alb.ToGray(always_apply=True),
+                        alb.Normalize(),
+                        # alb.Sharpen()
+                        ToTensorV2(),
+                    ]
+                )
+            else:
+                pass
             current_ratio = image.width / image.height
             if (current_ratio >= ratio):  # 比较宽的图片，按宽的比例resize
                 new_width = width
@@ -216,7 +263,7 @@ class CustomCollate(object):
         else:
             raise ValueError
 
-        image = self.transform(image=image)["image"].unsqueeze(0)
+        image = transform(image=image)["image"].unsqueeze(0)
         return image
 
 
@@ -302,6 +349,32 @@ class Tokenizer:
                     break
                 else:
                     text += self.id2token[id]
+
+            texts.append(text)
+
+        return texts
+
+    def decode_with_pad(self, labels):  # 解码部分
+        """
+        labels:
+            [B, L] : B for batch size, L for Sequence Length
+        """
+
+        pad = self.token2id["[PAD]"]
+        bos = self.token2id["[BOS]"]
+        eos = self.token2id["[EOS]"]
+        oov = self.token2id["[OOV]"]
+
+        texts = []
+        for label in labels.tolist():
+            text = ""
+            for id in label:
+                if id == bos:
+                    continue
+                elif id == pad or id == eos:
+                    break
+                else:
+                    text += self.id2token[id]+' '
 
             texts.append(text)
 

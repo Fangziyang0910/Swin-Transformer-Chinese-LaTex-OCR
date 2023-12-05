@@ -9,17 +9,17 @@ from dataset import CustomCollate
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--setting", "-s", type=str, default="settings/test.yaml",
+    parser.add_argument("--setting", "-s", type=str, default="settings/task_total_best.yaml",
                         help="Experiment settings")
-    parser.add_argument("--srcpath", "-sp", type=str, default="datasets_no_test/test/images/",
+    parser.add_argument("--srcpath", "-sp", type=str, default="data/origin_dataset2/test/images/",
                         help="test/image路径")
-    parser.add_argument("--ids","-i",type=str,default="datasets_no_test/test_ids.txt",help="test_ids文件路径")
+    parser.add_argument("--ids","-i",type=str,default="data/origin_dataset2/test_ids.txt",help="test_ids文件路径")
     # parser.add_argument("--tokenizer", "-tk", type=str, required=True,
     #                     help="Load pre-built tokenizer")
     parser.add_argument("--checkpoint", "-c", type=str,
-                        default="weights/checkpoints-epoch=279-val_overall_score=76.98470-accuracy=0.63202-val_bleu=0.79560-val_edit_distance=0.88192-val_loss=0.15343.ckpt",
+                        default="weights/checkpoints-epoch=39-val_overall_score=91.09005-accuracy=0.87338-val_bleu=0.88765-val_edit_distance=0.97167-val_loss=0.03511.ckpt",
                         help="Load model weight in checkpoint")
-    parser.add_argument("--result","-r",type=str,default="dataset/result.txt",help="result.txt测试结果存放路径")
+    parser.add_argument("--result","-r",type=str,default="dataset/result2.txt",help="result.txt测试结果存放路径")
     args = parser.parse_args()
 
     cfg = load_setting(args.setting)
@@ -57,7 +57,8 @@ if __name__ == "__main__":
         for image in images:
             start = time.time()
             x = collate.ready_image(image, shape).to(device)
-            f.write(" ".join(model.predict(x))+'\n')
+            result=model.predict(x)[0]+'\n'
+            f.write(result)
             count+=1
             if(count%100==0):
                 print(f'process {count}/{len(ids)}')

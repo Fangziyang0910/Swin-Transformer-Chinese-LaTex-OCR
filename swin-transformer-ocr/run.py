@@ -13,13 +13,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/task_total_test.yaml",
                         help="Experiment settings")
-    parser.add_argument("--version", "-v", type=int, default=4,
+    parser.add_argument("--version", "-v", type=int, default=7,
                         help="Train experiment version")
     parser.add_argument("--load_tokenizer", "-bt", type=str, default="dataset/vocab_final.pkl",
                         help="Load pre-built tokenizer")
     parser.add_argument("--num_workers", "-nw", type=int, default=16,
                         help="Number of workers for dataloader")
-    parser.add_argument("--batch_size", "-bs", type=int, default=40,
+    parser.add_argument("--batch_size", "-bs", type=int, default=64,
                         help="Batch size for training and validate")
     parser.add_argument("--resume_train", "-rt", type=str, default="",
                         help="Resume train from certain checkpoint")
@@ -53,8 +53,8 @@ if __name__ == "__main__":
     cfg.num_train_step = len(train_dataloader)
     model = SwinTransformerOCR(cfg, tokenizer)
 
-    # saved = torch.load('/home/fzy/DLC2023/swin-transformer-ocr/checkpoints/version_0/checkpoints-epoch=19-accuracy=0.47277.ckpt')
-    # model.load_state_dict(saved['state_dict'])
+    saved = torch.load('checkpoints/version_6/checkpoints-epoch=49-val_overall_score=89.84607-accuracy=0.85029-val_bleu=0.87985-val_edit_distance=0.96525-val_loss=0.04671.ckpt')
+    model.load_state_dict(saved['state_dict'])
 
     logger = CustomTensorBoardLogger("tb_logs", name="model", version=cfg.version,
                                      default_hp_metric=False)

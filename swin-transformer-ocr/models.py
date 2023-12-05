@@ -191,7 +191,7 @@ class SwinTransformerOCR(pl.LightningModule):
     @torch.no_grad()
     def predict(self, image):
         dec = self(image)
-        pred = self.tokenizer.decode(dec)
+        pred = self.tokenizer.decode_with_pad(dec)
         return pred
 
 
@@ -530,7 +530,9 @@ class CustomARWrapper(AutoregressiveWrapper):
         out = out[:, t:]
 
         if num_dims == 1:
+
             out = out.squeeze(0)
+
 
         self.net.train(was_training)
         return out
