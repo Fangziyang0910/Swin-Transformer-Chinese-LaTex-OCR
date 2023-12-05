@@ -19,5 +19,9 @@ swin-transformer-ocr/__pycache__
 
 test.py
 
-swin-transformer-ocr/data
-swin-transformer-ocr/dataset1
+swin-transformer-ocr/dataset/zimages/
+swin-transformer-ocr/dataset/ztrain.txt
+swin-transformer-ocr/dataset/zval.txt
+swin-transformer-ocr/dataset/dataset1/
+swin-transformer-ocr/dataset/dataset2/
+swin-transformer-ocr/logging/

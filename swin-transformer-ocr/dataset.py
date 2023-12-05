@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 import albumentations as alb
 from albumentations.pytorch import ToTensorV2
-
+import re
 
 class CustomDataset(torch.utils.data.Dataset):
     def __init__(self, cfg, txt_fn):
@@ -50,6 +50,7 @@ class CustomDataset(torch.utils.data.Dataset):
                 except ValueError:
                     skip_cnt += 1
                     continue
+                text = re.sub(' ', '', text)
                 if cfg.max_seq_len < len(text) + 2:  # 超过最大句子长度的抛弃
                     # we will add [BOS] and [EOS]
                     skip_cnt += 1
