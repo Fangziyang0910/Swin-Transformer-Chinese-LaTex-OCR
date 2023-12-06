@@ -6,7 +6,7 @@ from django_app.manager import ModelManager
 
 
 def predict_by_image_filename(image_filename="1.png"):
-    IMAGE_PATH = "/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/dataset/dataset1/resized_images/"+image_filename
+    IMAGE_PATH = "/home/fzy/DLC2023/swin-transformer-ocr/data/origin_dataset2/test/images/"+image_filename
     print(IMAGE_PATH)
     try:
         print(IMAGE_PATH)

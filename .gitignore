@@ -7,30 +7,19 @@ swin-transformer-ocr/checkpoints/*
 swin-transformer-ocr/weights/*
 !swin-transformer-ocr/weights/.gitkeep
 
-swin-transformer-ocr/dataset/images/
-swin-transformer-ocr/dataset/images.zip
-swin-transformer-ocr/dataset/resized_images
-swin-transformer-ocr/dataset/train.txt
-swin-transformer-ocr/dataset/val.txt
+swin-transformer-ocr/data
+swin-transformer-ocr/dataset/
+!swin-transformer-ocr/dataset/vocab_final.txt
+!swin-transformer-ocr/dataset/vocab_final.pkl
+
 
 swin-transformer-ocr/tb_logs
+swin-transformer-ocr/templates
 swin-transformer-ocr/__pycache__
 .idea
 
-test.py
-
-swin-transformer-ocr/dataset/zimages/
-swin-transformer-ocr/dataset/ztrain.txt
-swin-transformer-ocr/dataset/zval.txt
-swin-transformer-ocr/dataset/dataset1/
-swin-transformer-ocr/dataset/dataset2/
-
 swin-transformer-ocr/logging/*
 !swin-transformer-ocr/logging/spilt_txt.py
-
-
-swin-transformer-ocr/data
-swin-transformer-ocr/dataset1
 
 
 swin-transformer-ocr/db.sqlite3

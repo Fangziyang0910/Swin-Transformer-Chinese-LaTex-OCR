@@ -11,15 +11,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--setting", "-s", type=str, default="settings/task_total_best.yaml",
                         help="Experiment settings")
-    parser.add_argument("--srcpath", "-sp", type=str, default="data/origin_dataset2/test/images/",
+    parser.add_argument("--srcpath", "-sp", type=str, default="data/origin_dataset2/dev/images/",
                         help="test/image路径")
-    parser.add_argument("--ids","-i",type=str,default="data/origin_dataset2/test_ids.txt",help="test_ids文件路径")
+    parser.add_argument("--ids","-i",type=str,default="data/origin_dataset2/dev_ids.txt",help="test_ids文件路径")
     # parser.add_argument("--tokenizer", "-tk", type=str, required=True,
     #                     help="Load pre-built tokenizer")
     parser.add_argument("--checkpoint", "-c", type=str,
                         default="weights/checkpoints-epoch=39-val_overall_score=91.09005-accuracy=0.87338-val_bleu=0.88765-val_edit_distance=0.97167-val_loss=0.03511.ckpt",
                         help="Load model weight in checkpoint")
-    parser.add_argument("--result","-r",type=str,default="dataset/result2.txt",help="result.txt测试结果存放路径")
+    parser.add_argument("--result","-r",type=str,default="dataset/result_dev2.txt",help="result.txt测试结果存放路径")
     args = parser.parse_args()
 
     cfg = load_setting(args.setting)

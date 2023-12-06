@@ -36,17 +36,17 @@ def getModelForPrediction():
     # # model.restore_session(dir_output + "model_weights/model.cpkt")
     
     print('into getModelForPrediction')
-    cfg = load_setting('/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/settings/task_total.yaml')
+    cfg = load_setting('/home/fzy/DLC2023/swin-transformer-ocr/settings/task_total_best.yaml')
     print('cfg load success')
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
     
     # load
-    tokenizer = load_tokenizer('/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/'+cfg.tokenizer)
+    tokenizer = load_tokenizer('/home/fzy/DLC2023/swin-transformer-ocr/'+cfg.tokenizer)
     model = SwinTransformerOCR(cfg, tokenizer).to(device)
     print('model init success')
 
-    checkpoint='/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/checkpoints/checkpoints-epoch=96-val_overall_score=90.03386-accuracy=0.85575-val_bleu=0.88021-val_edit_distance=0.96506-val_loss=0.04882.ckpt'
+    checkpoint='/home/fzy/DLC2023/swin-transformer-ocr/weights/checkpoints-epoch=39-val_overall_score=91.09005-accuracy=0.87338-val_bleu=0.88765-val_edit_distance=0.97167-val_loss=0.03511.ckpt'
     saved = torch.load(checkpoint, map_location=device)
     print('save load success')
     model.load_state_dict(saved['state_dict'])
@@ -57,7 +57,7 @@ def getModelForPrediction():
 
 
 def predict_png(model,collate, png_path):
-    cfg = load_setting('/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/settings/task_total.yaml')
+    cfg = load_setting('/home/fzy/DLC2023/swin-transformer-ocr/settings/task_total_best.yaml')
     shape = cfg.height, cfg.width
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     img = collate.ready_image(png_path, shape).to(device)
@@ -79,7 +79,7 @@ class ModelManager(object):
         else:
             self.model,self.collate = model,collate
         print("init model")
-        self.cfg=load_setting('/root/autodl-tmp/Swin-Transformer-Chinese-LaTex-OCR/swin-transformer-ocr/settings/task_total.yaml')
+        self.cfg=load_setting('/home/fzy/DLC2023/swin-transformer-ocr/settings/task_total_best.yaml')
 
     @classmethod
     def instance(cls, *args, **kwargs):
