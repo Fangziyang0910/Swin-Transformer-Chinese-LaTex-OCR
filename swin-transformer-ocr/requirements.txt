@@ -3,7 +3,7 @@ easydict==1.9
 numpy==1.24.3
 opencv_python==4.5.4.58
 opencv_python_headless==4.5.4.58
-Pillow==8.4.0
+Pillow==10.3.0
 pytorch_lightning==1.5.3
 PyYAML==6.0.1
 timm==0.4.12
